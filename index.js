@@ -100,7 +100,7 @@ const maybeMultiChapter = (latest) =>
     : "";
 
 const getChapitreNumber = (c) =>
-  c.os ? "One Shot" : `Chapitre${c.latest ? `s ${c.chapter} - ${c.latest.at(0)}` : ` ${c.chapter}`}`
+  c.os ? "One Shot" : `Chapitre${c.latest ? `s ${c.chapter} - ${c.latest.at(-1)}` : ` ${c.chapter}`}`
 
 // Helpers for credits labels
 const isMultiple = (val) =>
@@ -261,8 +261,15 @@ async function bootstrap() {
         const prev = acc.at(-1);
         const isDuplicate = prev && prev.serieTitle === curr.serieTitle;
         if(isDuplicate){
-          prev.latest = prev.latest ?? [];
-          prev.latest.push(curr.chapter);
+            if(prev.chapter > curr.chapter){
+                curr.latest = prev.latest ?? [];
+                curr.latest.push(prev.chapter)
+                acc.pop();
+                acc.push(curr);
+            }else {
+                prev.latest = prev.latest ?? [];
+                prev.latest.push(curr.chapter);
+            }
         } else {
             acc.push(curr);
         }
