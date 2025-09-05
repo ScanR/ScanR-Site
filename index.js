@@ -261,13 +261,11 @@ async function bootstrap() {
         const prev = acc.at(-1);
         const isDuplicate = prev && prev.serieTitle === curr.serieTitle;
         if(isDuplicate){
-          curr.latest = prev.latest ?? [];
-          curr.latest.push(prev.chapter);
-          acc.pop();
+          prev.latest = prev.latest ?? [];
+          prev.latest.push(curr.chapter);
+        } else {
+            acc.push(curr);
         }
-        if(!foundChapter) {
-          acc.push(curr);
-        } 
         return acc;
       },[])
       .slice(0, 15);
