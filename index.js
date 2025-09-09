@@ -261,7 +261,7 @@ async function bootstrap() {
         const prev = acc.at(-1);
         const isDuplicate = prev && prev.serieTitle === curr.serieTitle;
         if(isDuplicate){
-            if(prev.chapter > curr.chapter){
+            if(prev.chapter - curr.chapter > 0){
                 curr.latest = prev.latest ?? [];
                 curr.latest.push(prev.chapter)
                 acc.pop();
@@ -363,3 +363,4 @@ async function bootstrap() {
 
 // Lancer l’application
 bootstrap();
+
