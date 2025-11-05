@@ -270,6 +270,7 @@ async function bootstrap() {
                 prev.latest = prev.latest ?? [];
                 prev.latest.push(curr.chapter);
             }
+          curr.latest = curr.latest?.sort((a,b) => a - b);
         } else {
             acc.push(curr);
         }
@@ -363,4 +364,5 @@ async function bootstrap() {
 
 // Lancer l’application
 bootstrap();
+
 
