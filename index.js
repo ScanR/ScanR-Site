@@ -75,8 +75,8 @@ const konami = [
 const latestContainer = document.querySelector(".latest-chapters");
 
 // Helpers pour ajuster les URLs de cover
-const appendSeriesCover = (url) => `${url.slice(0, -4)}-s.jpg`;
-const appendChapterCover = (url) => `${url.slice(0, -4)}-m.jpg`;
+/*const appendSeriesCover = (url) => `${url.slice(0, -4)}-s.jpg`;
+const appendChapterCover = (url) => `${url.slice(0, -4)}-m.jpg`;*/
 function timeAgo(ms) {
   const diff = Date.now() - ms;
   const min = 60 * 1000,
@@ -120,7 +120,7 @@ function renderChapter(c) {
   return `
   <a class="chapter-card" href='${c.url}'>
     <div class="chapter-cover">
-      <img src="${appendChapterCover(c.serieCover)}" alt="${
+      <img src="${c.serieCover}" alt="${
     c.serieTitle
   } – Cover">
       ${maybeMultiChapter(c.latest)}
@@ -154,7 +154,7 @@ function renderSeries(s) {
   return `
   <div class="series-card" >
     <div class="series-cover">
-      <img src="${appendSeriesCover(s.cover)}" alt="${s.title} – Cover">
+      <img src="${s.cover}" alt="${s.title} – Cover">
     </div>
     <div class="series-info">
       <div class="series-title">${s.title}</div>
@@ -364,5 +364,6 @@ async function bootstrap() {
 
 // Lancer l’application
 bootstrap();
+
 
 
