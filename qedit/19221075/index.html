@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparateur QEdit</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../qedit.css">
+</head>
+<body class="qedit-body" data-page="viewer">
+  <div class="qedit-shell">
+    <header class="qedit-header">
+      <a class="qedit-brand" href="/">
+        <img src="/img/scanr.webp" alt="ScanR">
+        <h1>Comparateur QEdit</h1>
+      </a>
+      <div class="qedit-actions">
+        <span class="qedit-chip">ID <strong id="qedit-id">—</strong></span>
+        <button class="qedit-ghost" id="copy-link" type="button">Copier le lien</button>
+        <a class="qedit-button" href="/qedit/">Accueil QEdit</a>
+      </div>
+    </header>
+
+    <section class="qedit-hero">
+      <h2 id="qedit-title">Comparateur QEdit</h2>
+      <p id="qedit-description">
+        Clique sur la page pour alterner entre QEdit et la version originale, ou passe en mode slider pour les comparer en douceur.
+      </p>
+      <div class="qedit-metas">
+        <span class="badge" id="badge-pages">— pages</span>
+        <span class="badge" id="badge-created">—</span>
+        <a class="badge" id="badge-original" target="_blank" rel="noreferrer noopener">Album non QEdit</a>
+        <a class="badge" id="badge-qedit" target="_blank" rel="noreferrer noopener">Album QEdit</a>
+      </div>
+    </section>
+
+    <div class="viewer-grid" id="viewer-wrapper">
+      <aside class="panel">
+        <div class="panel-header">
+          <div class="panel-title">Pages</div>
+        </div>
+        <div class="page-rail" id="page-rail"></div>
+      </aside>
+
+      <section class="panel viewer-panel" id="qedit-viewer" data-mode="toggle">
+        <div class="panel-header">
+          <div class="panel-title" id="page-label">Page 1</div>
+          <div class="controls">
+            <button class="pill mode-pill" data-mode="toggle" type="button">Toggle</button>
+            <button class="pill mode-pill" data-mode="slider" type="button">Slider</button>
+            <button class="pill" data-action="prev" type="button">◀ Précédent</button>
+            <button class="pill" data-action="next" type="button">Suivant ▶</button>
+            <button class="pill" id="fullscreen-toggle" type="button">Plein écran</button>
+          </div>
+        </div>
+
+        <div class="viewer-canvas" id="viewer-canvas">
+          <div class="zoom-controls">
+            <button class="zoom-btn" id="zoom-out" type="button">−</button>
+            <button class="zoom-btn" id="zoom-reset" type="button">100%</button>
+            <button class="zoom-btn" id="zoom-in" type="button">+</button>
+          </div>
+          <div class="stacked-mode">
+            <img data-img="original" alt="Page originale">
+            <img data-img="qedit" alt="Page QEdit">
+            <div class="hint">Clique pour basculer</div>
+          </div>
+        </div>
+
+        <div class="viewer-footer">
+          <div class="status" id="viewer-status">En cours de chargement…</div>
+          <div class="badges">
+            <span class="badge" id="badge-side">Vue : QEdit</span>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="../qedit.js"></script>
+</body>
+</html>

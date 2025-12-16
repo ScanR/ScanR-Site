@@ -1,0 +1,525 @@
+/* Base layout */
+:root {
+  --bg: #080d1a;
+  --bg-alt: #0d1426;
+  --panel: rgba(255, 255, 255, 0.04);
+  --panel-strong: rgba(255, 255, 255, 0.08);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e8ecf6;
+  --muted: #a4b1c9;
+  --accent: #ff6b9a;
+  --accent-2: #6ae7ff;
+  --shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  --radius: 18px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body.qedit-body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Urbanist", "Inter", system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 20% 20%, rgba(255, 107, 154, 0.06), transparent 30%),
+    radial-gradient(circle at 80% 0%, rgba(104, 211, 255, 0.06), transparent 35%),
+    linear-gradient(135deg, var(--bg), #050912 45%, var(--bg-alt));
+  color: var(--text);
+  line-height: 1.6;
+  padding: 1.5rem 0 3rem;
+}
+
+.qedit-shell {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 5vw;
+}
+
+.qedit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.qedit-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  text-decoration: none;
+  color: var(--text);
+}
+
+.qedit-brand img {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+}
+
+.qedit-brand h1 {
+  margin: 0;
+  font-size: 1.4rem;
+  letter-spacing: 0.6px;
+}
+
+.qedit-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.qedit-button,
+.qedit-ghost {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.65rem 0.95rem;
+  background: var(--panel);
+  color: var(--text);
+  text-decoration: none;
+  cursor: pointer;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+}
+
+.qedit-button:hover,
+.qedit-ghost:hover {
+  border-color: rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.qedit-button.accent {
+  background: linear-gradient(135deg, var(--accent), #ff87b0);
+  color: #0a0d18;
+  border-color: transparent;
+  box-shadow: 0 10px 30px rgba(255, 107, 154, 0.35);
+}
+
+.qedit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+.qedit-chip strong {
+  color: #fff;
+  letter-spacing: 0.2px;
+}
+
+.qedit-hero {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+.qedit-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 50%, rgba(255, 107, 154, 0.08), transparent 40%),
+    radial-gradient(circle at 80% 40%, rgba(106, 231, 255, 0.08), transparent 38%);
+  opacity: 0.8;
+  pointer-events: none;
+}
+
+.qedit-hero h2 {
+  margin: 0 0 0.35rem;
+  font-size: 2rem;
+  letter-spacing: 0.4px;
+  position: relative;
+  z-index: 1;
+}
+
+.qedit-hero p {
+  margin: 0.35rem 0;
+  color: var(--muted);
+  max-width: 820px;
+  position: relative;
+  z-index: 1;
+}
+
+.qedit-metas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.8rem;
+  position: relative;
+  z-index: 1;
+}
+
+.viewer-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem;
+  box-shadow: var(--shadow);
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.panel-title {
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.page-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+  padding-right: 0.4rem;
+}
+
+.page-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease;
+}
+
+.page-chip:hover {
+  background: rgba(255, 255, 255, 0.07);
+  transform: translateX(2px);
+}
+
+.page-chip.active {
+  border-color: rgba(255, 255, 255, 0.18);
+  background: linear-gradient(135deg, rgba(255, 107, 154, 0.16), rgba(106, 231, 255, 0.1));
+}
+
+.page-chip .label {
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.controls {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.pill {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.18s ease;
+}
+
+.pill:hover {
+  background: rgba(255, 255, 255, 0.09);
+  transform: translateY(-1px);
+}
+
+.pill.active {
+  background: linear-gradient(135deg, rgba(255, 107, 154, 0.22), rgba(106, 231, 255, 0.18));
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.viewer-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.viewer-canvas {
+  position: relative;
+  width: 100%;
+  min-height: 420px;
+  height: 75vh;
+  max-height: 85vh;
+  --zoom: 1;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: auto;
+  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.05), transparent 30%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  box-shadow: var(--shadow);
+}
+
+.viewer-canvas img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.stacked-mode {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.stacked-mode img {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+  transform-origin: center center;
+  transform: scale(var(--zoom, 1));
+}
+
+.stacked-mode img.hidden {
+  opacity: 0;
+}
+
+.stacked-mode .hint {
+  position: absolute;
+  bottom: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+.viewer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  flex-wrap: wrap;
+}
+
+.viewer-footer .status {
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.badges {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.qedit-full .qedit-shell {
+  max-width: 100%;
+  padding: 0;
+}
+
+.qedit-full .viewer-grid {
+  grid-template-columns: 1fr;
+  margin-top: 0.5rem;
+}
+
+.qedit-full .panel {
+  border-radius: 0;
+  min-height: calc(100vh - 60px);
+}
+
+.qedit-full .viewer-canvas {
+  height: calc(100vh - 180px);
+  max-height: calc(100vh - 140px);
+}
+
+.qedit-full header {
+  padding: 1rem 5vw;
+}
+
+.zoom-controls {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 0.4rem;
+  z-index: 5;
+}
+
+.zoom-btn {
+  background: rgba(0, 0, 0, 0.3);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  padding: 0.35rem 0.55rem;
+  cursor: pointer;
+  min-width: 38px;
+  font-weight: 700;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.zoom-btn:hover {
+  background: rgba(0, 0, 0, 0.45);
+  transform: translateY(-1px);
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.3rem;
+  box-shadow: var(--shadow);
+}
+
+.home-grid {
+  display: grid;
+  gap: 1rem;
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.input-row {
+  display: flex;
+  gap: 0.7rem;
+  align-items: center;
+}
+
+.input-row .prefix {
+  padding: 0.75rem 0.95rem;
+  border-radius: 12px;
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.input-row input {
+  flex: 1;
+  padding: 0.8rem 0.95rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  font-size: 1rem;
+}
+
+.input-row input:focus {
+  outline: 2px solid rgba(255, 107, 154, 0.6);
+  outline-offset: 1px;
+}
+
+.input-row input.shake {
+  animation: shake 0.35s ease;
+  border-color: var(--accent);
+}
+
+.hint {
+  color: var(--muted);
+}
+
+.empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--muted);
+}
+
+@keyframes shake {
+  0% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-6px);
+  }
+  50% {
+    transform: translateX(6px);
+  }
+  75% {
+    transform: translateX(-4px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .viewer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .page-rail {
+    max-height: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  }
+
+  .qedit-actions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 768px) {
+  body.qedit-body {
+    padding-top: 1rem;
+  }
+
+  .qedit-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .qedit-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .input-row {
+    flex-direction: column;
+  }
+
+  .input-row .prefix,
+  .input-row input {
+    width: 100%;
+  }
+
+  .viewer-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

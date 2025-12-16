@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comparateur QEdit • ScanR</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./qedit.css">
+</head>
+<body class="qedit-body" data-page="home">
+  <div class="qedit-shell">
+    <header class="qedit-header">
+      <a class="qedit-brand" href="/">
+        <img src="/img/scanr.webp" alt="ScanR">
+        <h1>Comparateur QEdit</h1>
+      </a>
+      <div class="qedit-actions">
+        <a class="qedit-button" href="/">Retour au site</a>
+      </div>
+    </header>
+
+    <section class="qedit-hero">
+      <h2>Comparer QEdit vs original</h2>
+      <p>
+        Rentre un ID QEdit pour ouvrir le comparateur. Bascule entre les deux versions en un clic et profite du mode plein écran.
+      </p>
+      <div class="qedit-metas">
+        <span class="badge">Switch instantané</span>
+        <span class="badge">Design responsive</span>
+      </div>
+    </section>
+
+    <div class="home-grid">
+      <div class="card">
+        <form id="qedit-form">
+          <div class="input-row">
+            <span class="prefix">teamscanr.fr/qedit/</span>
+            <input id="qedit-id-input" maxlength="8" minlength="8" pattern="[0-9]{8}" placeholder="00000000" autocomplete="off" required>
+          </div>
+          <div class="controls" style="margin-top: 0.8rem;">
+            <button type="submit" class="qedit-button accent" id="qedit-open">Ouvrir le comparateur</button>
+            <div class="hint">Astuce : tu peux aussi coller l’ID directement dans l’URL.</div>
+          </div>
+        </form>
+      </div>
+      <div class="card hint">
+        Les pages QEdit sont générées automatiquement depuis la commande Discord. En cas d’erreur de chargement, vérifie que l’ID est bien valide ou demande une régénération.
+      </div>
+    </div>
+  </div>
+  <script src="./qedit.js"></script>
+</body>
+</html>
