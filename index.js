@@ -144,12 +144,9 @@ function renderSeries(s) {
     "0"
   );
 
-  // 2) On remplace les points pour correspondre à la route
-  const safeChap = lastChap.replaceAll(".", "-");
-
-  // 3) Lien complet vers le dernier chapitre
+  // 2) Lien complet vers le dernier chapitre
   //    s.urlSerie vaut "https://teamscanr.fr/read/gist/<base64>"
-  const lastChapUrl = `${s.urlSerie}/${safeChap}/1/`;
+  const lastChapUrl = `${s.urlSerie}/${lastChap}/1/`;
 
   return `
   <div class="series-card" >
@@ -238,12 +235,9 @@ async function bootstrap() {
           chapData.chapter      = chapNum;
           chapData.last_updated = Number(chapData.last_updated) * 1000;
 
-          // Génération de l'URL du chapitre
-          const safeChap = chapNum.replaceAll('.', '-');
-
           // Filter duplicate
           chapData.os = serie.os;
-          chapData.url = `${serie.urlSerie}/${safeChap}/1/`;
+          chapData.url = `${serie.urlSerie}/${chapNum}/1/`;
           chapData.idChest = Object.values(chapData.groups)[0].split("/").pop();
           return chapData;
         })
@@ -264,11 +258,13 @@ async function bootstrap() {
             if(prev.chapter - curr.chapter > 0){
                 curr.latest = prev.latest ?? [];
                 curr.latest.push(prev.chapter)
+                curr.last_updated = Math.max(curr.last_updated, prev.last_updated);
                 acc.pop();
                 acc.push(curr);
             }else {
                 prev.latest = prev.latest ?? [];
                 prev.latest.push(curr.chapter);
+                prev.last_updated = Math.max(prev.last_updated, curr.last_updated);
             }
           curr.latest = curr.latest?.sort((a,b) => a - b);
         } else {
