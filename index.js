@@ -258,11 +258,13 @@ async function bootstrap() {
             if(prev.chapter - curr.chapter > 0){
                 curr.latest = prev.latest ?? [];
                 curr.latest.push(prev.chapter)
+                curr.last_updated = Math.max(curr.last_updated, prev.last_updated);
                 acc.pop();
                 acc.push(curr);
             }else {
                 prev.latest = prev.latest ?? [];
                 prev.latest.push(curr.chapter);
+                prev.last_updated = Math.max(prev.last_updated, curr.last_updated);
             }
           curr.latest = curr.latest?.sort((a,b) => a - b);
         } else {
