@@ -115,6 +115,15 @@ const formatCredit = (val, sing, plur) =>
     ? `<div class="meta"><strong>${isMultiple(val) ? plur : sing} :</strong> ${joinVal(val)}</div>`
     : "";
 
+function preserveLatestChapterMeta(target, source) {
+  if (source.last_updated > target.last_updated) {
+    target.last_updated = source.last_updated;
+    target.url = source.url;
+    target.title = source.title;
+    target.idChest = source.idChest;
+  }
+}
+
 // Rendus HTML
 function renderChapter(c) {
   return `
@@ -261,16 +270,21 @@ async function bootstrap() {
         const prev = acc.at(-1);
         const isDuplicate = prev && prev.serieTitle === curr.serieTitle;
         if(isDuplicate){
+            let mergedChapter;
             if(prev.chapter - curr.chapter > 0){
                 curr.latest = prev.latest ?? [];
                 curr.latest.push(prev.chapter)
+                preserveLatestChapterMeta(curr, prev);
                 acc.pop();
                 acc.push(curr);
+                mergedChapter = curr;
             }else {
                 prev.latest = prev.latest ?? [];
                 prev.latest.push(curr.chapter);
+                preserveLatestChapterMeta(prev, curr);
+                mergedChapter = prev;
             }
-          curr.latest = curr.latest?.sort((a,b) => a - b);
+          mergedChapter.latest = mergedChapter.latest?.sort((a,b) => a - b);
         } else {
             acc.push(curr);
         }
