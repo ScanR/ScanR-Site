@@ -227,6 +227,10 @@ async function fetchAllSeries() {
 async function bootstrap() {
   try {
     const allSeries = await fetchAllSeries();
+    window.__SCANR_SERIES__ = allSeries;
+    window.dispatchEvent(
+      new CustomEvent("scanr:series-ready", { detail: allSeries })
+    );
 
     // Séparer les séries selon leur statut
     const onGoing   = allSeries.filter(s => !s.completed && !s.os && !s.konami);

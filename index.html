@@ -66,6 +66,36 @@
           </ul>
         </nav>
         <div class="header-actions">
+          <div class="header-search">
+            <button
+              id="header-search-toggle"
+              class="search-toggle"
+              type="button"
+              aria-label="Rechercher une série"
+              aria-expanded="false"
+              aria-controls="header-search-panel"
+            >
+              <i class="fas fa-search"></i>
+            </button>
+            <div id="header-search-panel" class="search-panel" hidden>
+              <form class="search-form" role="search">
+                <label class="sr-only" for="header-search-input">
+                  Rechercher une série
+                </label>
+                <input
+                  id="header-search-input"
+                  type="search"
+                  placeholder="Rechercher une série, un auteur, un tag..."
+                  autocomplete="off"
+                />
+                <button type="submit">Chercher</button>
+              </form>
+              <p class="search-results-meta" aria-live="polite">
+                Commencez à taper pour rechercher une série.
+              </p>
+              <div class="search-results"></div>
+            </div>
+          </div>
           <div class="social-icons">
             <a
               href="https://www.youtube.com/channel/UCCaNnBazWhyzwKpgFUGTE7g"
@@ -144,6 +174,7 @@
         </div>
       </section>
     </main>
+    <script src="header-search.js" type="module"></script>
     <script src="index.js" type="module"></script>
   </body>
 </html>
