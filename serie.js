@@ -185,8 +185,7 @@ function buildPage(serie) {
         <span class="c-group">${grp}</span>
         <span class="c-date">${date}</span>
       `;
-      const safe = num.replaceAll(".","-");
-      card.setAttribute("href",`/${serie.slug}/${safe}/1/`);
+      card.setAttribute("href",`/${serie.slug}/${num}/1/`);
       listEl.appendChild(card);
     });
   }

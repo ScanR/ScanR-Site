@@ -153,12 +153,9 @@ function renderSeries(s) {
     "0"
   );
 
-  // 2) On remplace les points pour correspondre à la route
-  const safeChap = lastChap.replaceAll(".", "-");
-
-  // 3) Lien complet vers le dernier chapitre
+  // 2) Lien complet vers le dernier chapitre
   //    s.urlSerie vaut "https://teamscanr.fr/read/gist/<base64>"
-  const lastChapUrl = `${s.urlSerie}/${safeChap}/1/`;
+  const lastChapUrl = `${s.urlSerie}/${lastChap}/1/`;
 
   return `
   <div class="series-card" >
@@ -251,12 +248,9 @@ async function bootstrap() {
           chapData.chapter      = chapNum;
           chapData.last_updated = Number(chapData.last_updated) * 1000;
 
-          // Génération de l'URL du chapitre
-          const safeChap = chapNum.replaceAll('.', '-');
-
           // Filter duplicate
           chapData.os = serie.os;
-          chapData.url = `${serie.urlSerie}/${safeChap}/1/`;
+          chapData.url = `${serie.urlSerie}/${chapNum}/1/`;
           chapData.idChest = Object.values(chapData.groups)[0].split("/").pop();
           return chapData;
         })
