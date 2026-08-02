@@ -118,7 +118,6 @@ const formatCredit = (val, sing, plur) =>
 function preserveLatestChapterMeta(target, source) {
   if (source.last_updated > target.last_updated) {
     target.last_updated = source.last_updated;
-    target.url = source.url;
     target.title = source.title;
     target.idChest = source.idChest;
   }
