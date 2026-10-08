@@ -136,7 +136,7 @@ function renderChapter(c) {
     </div>
     <div class="chapter-info">
       <div class="manga-title">${c.serieTitle}</div>
-      <div class="chapter-title">${!c.latest ? c.title : "&nbsp;"}</div>
+      <div class="chapter-title">${!c.latest && c.title ? c.title : "&nbsp;"}</div>
       <div class="chapter-number">${getChapitreNumber(c)}</div>
       <div class="chapter-time"><i class="fas fa-clock"></i> ${timeAgo(
         c.last_updated
