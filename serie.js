@@ -1,6 +1,21 @@
 // serie.js – affiche la fiche d’une série en se basant sur l’ID base64 passé dans l’URL
 // Exemple : serie.html?id=aHR0cHM6Ly4uLg==
 let CONFIG;
+
+// Groupes partenaires (collabs) : nom affiché dans le JSON → site du groupe
+const GROUP_LINKS = {
+  "Manga-Corporation": "https://manga-corporation.com/",
+};
+
+const renderGroups = groups => Object.keys(groups || {})
+  .flatMap(key => key.split(","))
+  .map(name => name.trim())
+  .filter(Boolean)
+  .map(name => GROUP_LINKS[name]
+    ? `<span class="c-group-link" role="link" tabindex="0" data-href="${GROUP_LINKS[name]}">${name}</span>`
+    : name)
+  .join(", ");
+
 document.addEventListener("DOMContentLoaded", async () => {
 
   const dev = await fetch("./config-dev.json");
@@ -171,7 +186,7 @@ function buildPage(serie) {
     listEl.innerHTML = "";
     // génère
     sorted.forEach(({num, data}) => {
-      const grp  = Object.keys(data.groups||{}).join(", ");
+      const grp  = renderGroups(data.groups);
       const date = new Date(data.last_updated*1000)
         .toLocaleDateString("fr-FR", {day:"2-digit",month:"2-digit",year:"numeric"});
       const vol  = data.volume ? `<span class="c-vol">Tome ${data.volume}</span>` : "";
@@ -190,6 +205,18 @@ function buildPage(serie) {
     });
   }
   content.querySelector("#commencer").href = `/${serie.slug}/${Math.min(...chaptersArray.map(e => e.num))}` 
+
+  // Liens des groupes partenaires : ouvre leur site sans suivre le lien du chapitre
+  const openGroupLink = e => {
+    const link = e.target.closest(".c-group-link");
+    if (!link) return;
+    if (e.type === "keydown" && e.key !== "Enter") return;
+    e.preventDefault();
+    e.stopPropagation();
+    window.open(link.dataset.href, "_blank", "noopener");
+  };
+  listEl.addEventListener("click", openGroupLink);
+  listEl.addEventListener("keydown", openGroupLink);
 
   // 6) Écouteur sur le bouton
     btnOrder.addEventListener("click", () => {

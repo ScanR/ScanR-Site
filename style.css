@@ -1076,6 +1076,16 @@ section {
   transform: translateY(-4px);
   box-shadow: 0 16px 32px rgba(0,0,0,.1);
 }
+.chapter-card-vertical .c-group { white-space: normal; }
+.c-group-link {
+  color: var(--clr-accent);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: opacity .2s ease;
+}
+.c-group-link:hover,
+.c-group-link:focus-visible { text-decoration: underline; opacity: .8; }
 .chapter-card-vertical .c-vol {
   font-size: .85rem;
   font-weight: 600;
