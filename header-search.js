@@ -1,4 +1,4 @@
-let CONFIG;
+import { loadAllSeries, getStatusLabel, thumbUrl } from "./common.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.getElementById("header-search-toggle");
@@ -30,11 +30,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return value || "";
   };
 
-  const getStatusLabel = (serie) => {
-    if (serie.os) return "One-shot";
-    return serie.completed ? "Terminée" : "En cours";
-  };
-
   const getSeriesHref = (serie) =>
     serie.urlSerie || (serie.slug ? `/${serie.slug}` : "#");
 
@@ -62,7 +57,12 @@ document.addEventListener("DOMContentLoaded", () => {
     cover.className = "search-result-cover";
 
     const img = document.createElement("img");
-    img.src = serie.cover || "img/scanr-black.webp";
+    if (serie.cover) {
+      img.src = thumbUrl(serie.cover, 120);
+      img.addEventListener("error", () => { img.src = serie.cover; }, { once: true });
+    } else {
+      img.src = "img/scanr-black.webp";
+    }
     img.alt = `Couverture de ${serie.title}`;
     img.loading = "lazy";
     cover.appendChild(img);
@@ -176,77 +176,14 @@ document.addEventListener("DOMContentLoaded", () => {
     closePanel();
   };
 
-  const loadConfig = async () => {
-    if (CONFIG) return CONFIG;
-
-    const dev = await fetch("./config-dev.json");
-    if (dev.status === 404) {
-      CONFIG = await fetch("./config.json").then((res) => res.json());
-    } else {
-      CONFIG = await dev.json();
-    }
-
-    return CONFIG;
-  };
-
-  const waitForSharedSeries = (timeoutMs = 1200) =>
-    new Promise((resolve) => {
-      if (Array.isArray(window.__SCANR_SERIES__) && window.__SCANR_SERIES__.length) {
-        resolve(window.__SCANR_SERIES__);
-        return;
-      }
-
-      let resolved = false;
-
-      const cleanup = () => {
-        window.removeEventListener("scanr:series-ready", onSeriesReady);
-        clearTimeout(timeoutId);
-      };
-
-      const onSeriesReady = (event) => {
-        if (resolved) return;
-        resolved = true;
-        cleanup();
-        resolve(event.detail);
-      };
-
-      const timeoutId = window.setTimeout(() => {
-        if (resolved) return;
-        resolved = true;
-        cleanup();
-        resolve(null);
-      }, timeoutMs);
-
-      window.addEventListener("scanr:series-ready", onSeriesReady, { once: true });
-    });
-
-  const fetchSeries = async () => {
-    const config = await loadConfig();
-    const allSerie = await fetch(`${config.URL_CDN}index.json`).then((res) => res.json());
-    const seriesPromises = Object.entries(allSerie).map(async ([slug, fileName]) => {
-      const serie = await fetch(`${config.URL_CDN}${fileName}`).then((res) => res.json());
-      serie.slug = serie.slug || slug;
-      serie.urlSerie = `/${slug}`;
-      return serie;
-    });
-
-    return Promise.all(seriesPromises);
-  };
-
   const ensureSeriesLoaded = async () => {
     if (state.allSeries.length) return state.allSeries;
     if (state.loadingPromise) return state.loadingPromise;
 
     state.loading = true;
     state.loadingPromise = (async () => {
-      const sharedSeries = await waitForSharedSeries();
-      const allSeries = sharedSeries?.length ? sharedSeries : await fetchSeries();
-      state.allSeries = allSeries.map((serie) => ({
-        ...serie,
-        slug: serie.slug || serie.urlSerie?.replace(/^\//, ""),
-        urlSerie: getSeriesHref(serie),
-      }));
-      window.__SCANR_SERIES__ = state.allSeries;
+      // Les séries cachées (Konami code) ne doivent pas apparaître dans la recherche
+      state.allSeries = (await loadAllSeries()).filter((serie) => !serie.konami);
       return state.allSeries;
     })()
       .catch((error) => {

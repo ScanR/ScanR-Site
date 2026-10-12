@@ -1042,7 +1042,7 @@ section {
      • c-group (Groupe) → 120px 
      • c-date (Date)  → 100px */
   grid-template-columns: 
-    60px   /* c-num  */ 
+    72px   /* c-num  */ 
     70px
     1fr    /* c-title*/ 
     148px  /* c-group*/ 
@@ -1077,6 +1077,9 @@ section {
   box-shadow: 0 16px 32px rgba(0,0,0,.1);
 }
 .chapter-card-vertical .c-group { white-space: normal; }
+/* Chapitres déjà ouverts dans le lecteur */
+.chapter-card-vertical.is-read { opacity: .55; }
+.chapter-card-vertical.is-read:hover { opacity: 1; }
 .c-group-link {
   color: var(--clr-accent);
   font-weight: 600;

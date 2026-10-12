@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ─────────────────────────────────  app.js ─────────────────────────────────────
-let CONFIG;
+import { loadAllSeries, coverImg } from "./common.js";
 
 const konami = [
   "arrowup",
@@ -124,13 +124,15 @@ function preserveLatestChapterMeta(target, source) {
 }
 
 // Rendus HTML
-function renderChapter(c) {
+function renderChapter(c, i) {
   return `
   <a class="chapter-card" href='${c.url}'>
     <div class="chapter-cover">
-      <img src="${c.serieCover}" alt="${
-    c.serieTitle
-  } – Cover">
+      ${coverImg(c.serieCover, `${c.serieTitle} – Cover`, {
+        width: 400,
+        sizes: "(max-width: 768px) 90vw, (max-width: 1024px) 50vw, 25vw",
+        eager: i < 4,
+      })}
       ${maybeMultiChapter(c.latest)}
       ${maybeNewBadge(c.last_updated)}
     </div>
@@ -159,12 +161,11 @@ function renderSeries(s) {
   return `
   <div class="series-card" >
     <div class="series-cover">
-      <img src="${s.cover}" alt="${s.title} – Cover">
+      ${coverImg(s.cover, `${s.title} – Cover`, { width: 200, sizes: "140px" })}
     </div>
     <div class="series-info">
       <div class="series-title">${s.title}</div>
       ${s.year    ? `<div class="meta">Année : ${s.year}</div>`   : ""}
-      ${s.status  ? `<div class="meta">Statut : ${s.status}</div>` : ""}
       ${formatCredit(s.author, 'Auteur', 'Auteurs')}
       ${s.artist && s.artist !== s.author
         ? formatCredit(s.artist, 'Artiste', 'Artistes')
@@ -196,37 +197,10 @@ function renderSeries(s) {
 }
 
 
-async function fetchAllSeries() {
-
-  const dev = await fetch("./config-dev.json");
-  if (dev.status === 404) {
-    CONFIG = await fetch("./config.json").then((res) => res.json());
-  } else {
-    CONFIG = await dev.json();
-  }
-  
-  const res = await fetch(`${CONFIG.URL_CDN}index.json`);
-  if (!res.ok) {
-    throw new Error(`Erreur HTTP ${res.status} en récupérant all_series.json`);
-  }
-  const allSerie = await res.json(); // renvoie tableau d'objets, chacun avec .id et .urlSerie
-  console.log(allSerie)
-  const seriesPromises = Object.entries(allSerie).map(async ([slug,fileName]) => {
-      const serie = await fetch(`${CONFIG.URL_CDN}${fileName}`).then((r) => r.json());
-      serie.urlSerie = `/${slug}`;
-      return serie;
-  })
-    return Promise.all(seriesPromises);
-}
-
 // 2) À partir de ces séries, bâtir liste de chapitres et liste de séries
 async function bootstrap() {
   try {
-    const allSeries = await fetchAllSeries();
-    window.__SCANR_SERIES__ = allSeries;
-    window.dispatchEvent(
-      new CustomEvent("scanr:series-ready", { detail: allSeries })
-    );
+    const allSeries = await loadAllSeries();
 
     // Séparer les séries selon leur statut
     const onGoing   = allSeries.filter(s => !s.completed && !s.os && !s.konami);
@@ -290,7 +264,6 @@ async function bootstrap() {
         return acc;
       },[])
       .slice(0, 15);
-    console.log(allChapters);
 
     // Injection du carousel des chapitres
     const track = document.querySelector('.carousel-track');
@@ -371,7 +344,9 @@ async function bootstrap() {
   } catch (err) {
     console.error('Erreur de chargement :', err);
     document.querySelector('.carousel-track').innerHTML = '<p>Impossible de charger les chapitres.</p>';
-    document.querySelector('.series-grid').innerHTML    = '<p>Impossible de charger les séries.</p>';
+    document.querySelectorAll('.series-grid').forEach(grid => {
+      grid.innerHTML = '<p>Impossible de charger les séries.</p>';
+    });
   }
 }
 

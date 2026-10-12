@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /lecteur/
+Disallow: /qedit/
+
+Sitemap: https://teamscanr.fr/sitemap.xml

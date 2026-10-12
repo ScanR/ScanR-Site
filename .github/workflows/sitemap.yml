@@ -1,0 +1,38 @@
+name: Mettre à jour le sitemap
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+
+jobs:
+  sitemap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Générer sitemap.xml
+        run: node scripts/generate-sitemap.mjs
+
+      - name: Commit si une série a été ajoutée ou retirée
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet sitemap.xml; then
+            echo "Sitemap inchangé"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "chore(sitemap): mise à jour automatique"
+          git push
+          # Les push faits avec GITHUB_TOKEN ne relancent pas toujours le build Pages
+          gh api -X POST "repos/${{ github.repository }}/pages/builds"

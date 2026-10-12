@@ -1,6 +1,6 @@
-// serie.js – affiche la fiche d’une série en se basant sur l’ID base64 passé dans l’URL
-// Exemple : serie.html?id=aHR0cHM6Ly4uLg==
-let CONFIG;
+// serie.js – affiche la fiche d’une série à partir du slug de l’URL
+// Exemple : https://teamscanr.fr/kaguya-sama
+import { loadSerie, getStatusLabel, coverImg, readProgress } from "./common.js";
 
 // Groupes partenaires (collabs) : nom affiché dans le JSON → site du groupe
 const GROUP_LINKS = {
@@ -17,14 +17,6 @@ const renderGroups = groups => Object.keys(groups || {})
   .join(", ");
 
 document.addEventListener("DOMContentLoaded", async () => {
-
-  const dev = await fetch("./config-dev.json");
-  if (dev.status === 404) {
-    CONFIG = await fetch("./config.json").then((res) => res.json());
-  } else {
-    CONFIG = await dev.json();
-  }
-
   /* ---------------------------------------------------------------- 
    * 1. Gestion light/dark + logo (copié de votre index.js)
    * ---------------------------------------------------------------- */
@@ -61,24 +53,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   const slug = slugs[0];
   if (!slug) return showError("Paramètre « slug » manquant dans l’URL.");
 
-  let allSerie;
-  const responseAllSerie = await fetch(`${CONFIG.URL_CDN}index.json`);
-  if (!responseAllSerie.ok) throw new Error(`HTTP ${responseAllSerie.status}`);
-  allSerie = await responseAllSerie.json();
-
-  if(!allSerie[slug]) {
-    return document.location("/404");
-  }
-
   let serie;
-  const urlJSON   = `${CONFIG.URL_CDN}${allSerie[slug]}`;
-  const responseSerie  = await fetch(urlJSON);
-  if (!responseSerie.ok) throw new Error(`HTTP ${responseSerie.status}`);
-  serie = await responseSerie.json();
-  
+  try {
+    serie = await loadSerie(slug);
+  } catch (err) {
+    console.error("Erreur de chargement :", err);
+    return showError("Impossible de charger la série pour le moment.");
+  }
+  if (!serie) return showError("Cette série n’existe pas.");
+
   /* ---------------------------------------------------------------- 
    * 3. Affichage
    * ---------------------------------------------------------------- */
+  updateSeo(serie);
   buildPage(serie);
 });
 
@@ -110,6 +97,59 @@ const formatCredit = (val, sing, plur) =>
     ? `<span><strong>${isMultiple(val) ? plur : sing} :</strong> ${joinVal(val)}</span>`
     : "";
 
+const setMeta = (selector, create, value) => {
+  let el = document.head.querySelector(selector);
+  if (!el) {
+    el = create();
+    document.head.appendChild(el);
+  }
+  el.setAttribute(el.tagName === "LINK" ? "href" : "content", value);
+};
+
+// Titre, description, canonique et données structurées propres à la série
+function updateSeo(serie) {
+  const url = `https://teamscanr.fr/${serie.slug}`;
+  const description = (serie.description || `Lisez ${serie.title} en français sur ScanR.`)
+    .replace(/\s+/g, " ")
+    .trim();
+  const shortDescription = description.length > 160
+    ? `${description.slice(0, 157).trimEnd()}…`
+    : description;
+
+  document.title = `${serie.title} – Lire en français | ScanR`;
+  setMeta('meta[name="description"]', () => {
+    const meta = document.createElement("meta");
+    meta.name = "description";
+    return meta;
+  }, shortDescription);
+  setMeta('link[rel="canonical"]', () => {
+    const link = document.createElement("link");
+    link.rel = "canonical";
+    return link;
+  }, url);
+
+  const people = (val) => (Array.isArray(val) ? val : String(val || "").split(/,|&| et /))
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((name) => ({ "@type": "Person", name }));
+
+  const jsonLd = document.createElement("script");
+  jsonLd.type = "application/ld+json";
+  jsonLd.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": serie.os ? "Book" : "ComicSeries",
+    name: serie.title,
+    url,
+    image: serie.cover,
+    description,
+    inLanguage: "fr",
+    author: people(serie.author),
+    ...(serie.artist && serie.artist !== serie.author ? { illustrator: people(serie.artist) } : {}),
+    translator: { "@type": "Organization", name: "ScanR", url: "https://teamscanr.fr/" },
+  });
+  document.head.appendChild(jsonLd);
+}
+
 function buildPage(serie) {
   const main = document.getElementById("serie-page");
   main.innerHTML = ""; // vide l’ancien contenu
@@ -123,7 +163,11 @@ function buildPage(serie) {
   aside.className = "serie-aside";
   aside.innerHTML = `
     <div class="cover">
-      <img src="${serie.cover}" alt="Couverture de ${serie.title}">
+      ${coverImg(serie.cover, `Couverture de ${serie.title}`, {
+        width: 400,
+        sizes: "(max-width: 768px) 90vw, 300px",
+        eager: true,
+      })}
     </div>
 
     <div class="meta-list">
@@ -131,7 +175,7 @@ function buildPage(serie) {
       ${serie.artist && serie.artist!==serie.author
                      ? formatCredit(serie.artist, 'Artiste', 'Artistes') : ""}
       ${serie.year    ? `<span><strong>Année :</strong> ${serie.year}</span>`     : ""}
-      <span><strong>Statut :</strong> ${serie.completed ? "Terminé" : "En cours"}</span>
+      <span><strong>Statut :</strong> ${getStatusLabel(serie)}</span>
     </div>
 
     ${Array.isArray(serie.tags)
@@ -149,7 +193,10 @@ function buildPage(serie) {
     </div>
     <div class="serie-button">
       <a id="commencer" class="button"><i class="fa-solid fa-play"></i> Commencer</a>
-      <a class="button button-disabled"><i class="fa-solid fa-circle-play"></i> Continuer</a>
+      <a id="continuer" class="button button-disabled" aria-disabled="true"
+         title="Ouvrez un chapitre pour pouvoir reprendre votre lecture ici">
+        <i class="fa-solid fa-circle-play"></i> Continuer
+      </a>
     </div>
     <div class="chapters-section">
       <div class="chapters-header">
@@ -169,6 +216,10 @@ function buildPage(serie) {
 
   // 4) Préparez vos données + état de tri
   const chaptersArray = Object.entries(serie.chapters).map(e => ({num:e[0],data:e[1]}));
+  // Un one-shot en un seul chapitre (souvent numéroté 0) s’affiche « One-shot » plutôt que « Chap. 0 »
+  const singleOneShot = serie.os && chaptersArray.length === 1;
+  const progress = readProgress(serie.slug);
+  const readChapters = new Set(progress?.read || []);
   let ascending = false;
   const listEl   = content.querySelector(".chapters-list");
   const btnOrder = content.querySelector("#toggle-order");
@@ -191,10 +242,14 @@ function buildPage(serie) {
         .toLocaleDateString("fr-FR", {day:"2-digit",month:"2-digit",year:"numeric"});
       const vol  = data.volume ? `<span class="c-vol">Tome ${data.volume}</span>` : "";
 
+      const isRead = readChapters.has(num);
       const card = document.createElement("a");
-      card.className = "chapter-card-vertical";
+      card.className = `chapter-card-vertical${isRead ? " is-read" : ""}`;
+      if (isRead) card.title = "Déjà lu";
       card.innerHTML = `
-        <span class="c-num">Chap. ${num}</span>
+        <span class="c-num">${singleOneShot ? "One-shot" : `Chap. ${num}`}${
+          isRead ? '<span class="sr-only"> (déjà lu)</span>' : ""
+        }</span>
         <span class="c-vol">${vol}</span>
         <span class="c-title">${data.title||""}</span>
         <span class="c-group">${grp}</span>
@@ -204,7 +259,22 @@ function buildPage(serie) {
       listEl.appendChild(card);
     });
   }
-  content.querySelector("#commencer").href = `/${serie.slug}/${Math.min(...chaptersArray.map(e => e.num))}` 
+  const firstChapter = chaptersArray.reduce(
+    (min, curr) => (parseFloat(curr.num) < parseFloat(min.num) ? curr : min)
+  );
+  content.querySelector("#commencer").href = `/${serie.slug}/${firstChapter.num}/1/`;
+
+  // « Continuer » reprend au dernier chapitre/page ouvert dans le lecteur (voir cubari/override.js)
+  if (progress?.chapter && serie.chapters[progress.chapter]) {
+    const btnContinue = content.querySelector("#continuer");
+    btnContinue.classList.remove("button-disabled");
+    btnContinue.removeAttribute("aria-disabled");
+    btnContinue.removeAttribute("title");
+    btnContinue.href = `/${serie.slug}/${progress.chapter}/${progress.page || 1}/`;
+    btnContinue.innerHTML = singleOneShot
+      ? '<i class="fa-solid fa-circle-play"></i> Continuer'
+      : `<i class="fa-solid fa-circle-play"></i> Continuer · Chap. ${progress.chapter}`;
+  }
 
   // Liens des groupes partenaires : ouvre leur site sans suivre le lien du chapitre
   const openGroupLink = e => {

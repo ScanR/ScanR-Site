@@ -14,12 +14,8 @@ let indice = 0;
 
 
 const init = async () => {
-  const dev = await fetch("../config-dev.json");
-  if (dev.status === 404) {
-    CONFIG = await fetch("../config.json").then((res) => res.json());
-  } else {
-    CONFIG = await dev.json();
-  }
+  const { loadConfig } = await import("../common.js");
+  CONFIG = await loadConfig();
 
   const proxyCubari = "/proxy/api/imgchest/chapter/9rydmwp6wyk";
   const urlChapter = `${CONFIG.URL_API_IMGCHEST}?id=${proxyCubari.split('/').pop()}` 
