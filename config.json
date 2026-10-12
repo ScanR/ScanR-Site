@@ -1,0 +1,7 @@
+{
+  "ENV": "PROD",
+  "URL_GIT_CUBARI": "https://api.github.com/repos/ScanR/Cubari/contents",
+  "URL_RAW_JSON_GITHUB": "raw/ScanR/Cubari/refs/heads/main/",
+  "URL_CDN":"https://cdn.teamscanr.fr/",
+  "URL_API_IMGCHEST" : "https://api.teamscanr.fr/imgchest"
+}
