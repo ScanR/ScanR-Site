@@ -250,7 +250,9 @@ async function bootstrap() {
           // Filter duplicate
           chapData.os = serie.os;
           chapData.url = `${serie.urlSerie}/${chapNum}/1/`;
-          chapData.idChest = Object.values(chapData.groups)[0].split("/").pop();
+          // ImgChest: "/proxy/api/imgchest/chapter/<id>" ; R2: liste des URLs des pages
+          const pages = Object.values(chapData.groups)[0];
+          chapData.idChest = Array.isArray(pages) ? String(pages[0]) : String(pages).split("/").pop();
           return chapData;
         })
       )
