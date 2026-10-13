@@ -1,6 +1,8 @@
 // serie.js – affiche la fiche d’une série à partir du slug de l’URL
 // Exemple : https://teamscanr.fr/kaguya-sama
-import { loadSerie, getStatusLabel, coverImg, readProgress, initHeader } from "./common.js?v=2";
+import {
+  loadSerie, getStatusLabel, coverImg, readProgress, initHeader, normalizeText, timeAgo, formatCredit, icon,
+} from "./common.js?v=3";
 
 // Groupes partenaires (collabs) : nom affiché dans le JSON → site du groupe.
 // Ce sont de vrais liens, posés au-dessus du lien du chapitre (pas de lien dans un lien).
@@ -52,38 +54,9 @@ function showError(msg) {
   document.getElementById("serie-page").innerHTML = `
     <div class="not-found">
       <h1>${msg}</h1>
-      <a class="button" href="/"><i class="fas fa-home"></i> Retour à l’accueil</a>
+      <a class="button" href="/">${icon("home")} Retour à l’accueil</a>
     </div>`;
 }
-
-const normalizeText = value => String(value || "")
-  .normalize("NFD")
-  .replace(/[̀-ͯ]/g, "")
-  .toLowerCase()
-  .trim();
-
-/* Calcule “il y a …” */
-function timeAgo(ms) {
-  const diff = Date.now() - ms,
-        min  = 60e3, h = 60*min, d = 24*h, w = 7*d;
-  if (diff < min) return "à l’instant";
-  if (diff < h)   return `${Math.floor(diff/min)} min`;
-  if (diff < d)   return `${Math.floor(diff/h)} h`;
-  if (diff < w)   return `${Math.floor(diff/d)} j`;
-  return new Date(ms).toLocaleDateString("fr-FR");
-}
-
-const isMultiple = (val) =>
-  Array.isArray(val)
-    ? val.length > 1
-    : typeof val === "string" && /,|&| et | and |\/|\//i.test(val);
-
-const joinVal = (val) => (Array.isArray(val) ? val.join(", ") : val);
-
-const formatCredit = (val, sing, plur) =>
-  val
-    ? `<span><strong>${isMultiple(val) ? plur : sing} :</strong> ${joinVal(val)}</span>`
-    : "";
 
 const setMeta = (selector, create, value) => {
   let el = document.head.querySelector(selector);
@@ -180,10 +153,10 @@ function buildPage(serie) {
       <p class="synopsis">${serie.description||"Pas de synopsis."}</p>
     </div>
     <div class="serie-button">
-      <a id="commencer" class="button"><i class="fa-solid fa-play"></i> Commencer</a>
+      <a id="commencer" class="button">${icon("play")} Commencer</a>
       <a id="continuer" class="button button-disabled" aria-disabled="true"
          title="Ouvrez un chapitre pour pouvoir reprendre votre lecture ici">
-        <i class="fa-solid fa-circle-play"></i> Continuer
+        ${icon("circle-play")} Continuer
       </a>
     </div>
     <div class="chapters-section">
@@ -192,11 +165,11 @@ function buildPage(serie) {
         <div class="chapters-tools">
           <div class="chapter-filter" hidden>
             <label class="sr-only" for="chapter-filter-input">Aller au chapitre (numéro ou titre)</label>
-            <i class="fas fa-search" aria-hidden="true"></i>
+            ${icon("search")}
             <input id="chapter-filter-input" type="search" placeholder="Aller au chapitre…" autocomplete="off">
           </div>
           <button id="toggle-order" class="toggle-order" aria-label="Inverser l’ordre des chapitres">
-              <i class="fas fa-sort-numeric-up"></i>
+              ${icon("sort-up")}
           </button>
         </div>
       </div>
@@ -275,6 +248,7 @@ function buildPage(serie) {
     details.open = openVolumes.has(key);
     details.innerHTML = `
       <summary>
+        ${icon("chevron-right", "volume-chevron")}
         <span class="volume-name">${key ? `Tome ${key}` : "Hors tome"}</span>
         <span class="volume-range">${first === last ? `Chap. ${first}` : `Chap. ${first} à ${last}`}
           · ${chapters.length} chapitre${chapters.length > 1 ? "s" : ""}</span>
@@ -352,17 +326,14 @@ function buildPage(serie) {
     btnContinue.removeAttribute("title");
     btnContinue.href = `/${serie.slug}/${progress.chapter}/${progress.page || 1}/`;
     btnContinue.innerHTML = singleOneShot
-      ? '<i class="fa-solid fa-circle-play"></i> Continuer'
-      : `<i class="fa-solid fa-circle-play"></i> Continuer · Chap. ${progress.chapter}`;
+      ? `${icon("circle-play")} Continuer`
+      : `${icon("circle-play")} Continuer · Chap. ${progress.chapter}`;
   }
 
   // 6) Écouteur sur le bouton
     btnOrder.addEventListener("click", () => {
     ascending = !ascending;
-    const icon = btnOrder.querySelector("i");
-    icon.className = ascending
-        ? "fas fa-sort-numeric-down"
-        : "fas fa-sort-numeric-up";
+    btnOrder.innerHTML = icon(ascending ? "sort-down" : "sort-up");
     // Le tome qui arrive en tête de liste s'ouvre
     openVolumes.add(volumeKey(ascending ? firstChapter : latestChapter));
     renderChapters();

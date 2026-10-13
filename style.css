@@ -306,6 +306,16 @@ header {
   color: var(--clr-text-sub);
 }
 
+/* Icônes SVG (symboles du header commun), à la taille et à la couleur du texte */
+.icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  fill: currentColor;
+  vertical-align: -0.125em;
+  flex-shrink: 0;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -460,7 +470,7 @@ section[id] {
   align-items: center;
   gap: 0.3rem;
 }
-.chapter-time i {
+.chapter-time .icon {
   font-size: 1rem;
 }
 .manga-title {
@@ -1105,7 +1115,7 @@ section[id] {
 .chapter-filter[hidden] {
   display: none;
 }
-.chapter-filter i {
+.chapter-filter .icon {
   position: absolute;
   left: 0.8rem;
   top: 50%;
@@ -1149,15 +1159,13 @@ section[id] {
 .volume-group > summary::-webkit-details-marker {
   display: none;
 }
-.volume-group > summary::before {
-  content: "\f054"; /* chevron Font Awesome */
-  font-family: "Font Awesome 6 Free";
-  font-weight: 900;
+.volume-chevron {
+  align-self: center;
   font-size: 0.75rem;
   color: var(--clr-primary);
   transition: transform 0.2s ease;
 }
-.volume-group[open] > summary::before {
+.volume-group[open] .volume-chevron {
   transform: rotate(90deg);
 }
 .volume-group > summary:hover {
@@ -1203,7 +1211,7 @@ section[id] {
   gap: 0.4rem;
   transition: background 0.2s ease, transform 0.2s ease;
 }
-.toggle-order i {
+.toggle-order .icon {
   font-size: 1rem;
 }
 .toggle-order:hover {

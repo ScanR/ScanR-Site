@@ -1,4 +1,4 @@
-import { loadAllSeries, getStatusLabel, thumbUrl } from "./common.js?v=2";
+import { loadAllSeries, getStatusLabel, thumbUrl, normalizeText, joinVal } from "./common.js?v=3";
 
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.getElementById("header-search-toggle");
@@ -15,19 +15,6 @@ document.addEventListener("DOMContentLoaded", () => {
     loading: false,
     loadingPromise: null,
     lastMatches: [],
-  };
-
-  const normalizeText = (value = "") =>
-    value
-      .toString()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toLowerCase()
-      .trim();
-
-  const joinValue = (value) => {
-    if (Array.isArray(value)) return value.join(", ");
-    return value || "";
   };
 
   const getSeriesHref = (serie) =>
@@ -77,9 +64,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const subtitle = document.createElement("div");
     subtitle.className = "search-result-subtitle";
     subtitle.textContent =
-      joinValue(serie.author) ||
-      joinValue(serie.artist) ||
-      joinValue(serie.tags) ||
+      joinVal(serie.author) ||
+      joinVal(serie.artist) ||
+      joinVal(serie.tags) ||
       "Série ScanR";
 
     const status = document.createElement("span");
@@ -112,9 +99,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const matches = state.allSeries
       .map((serie) => {
         const title = normalizeText(serie.title);
-        const authors = normalizeText(joinValue(serie.author));
-        const artists = normalizeText(joinValue(serie.artist));
-        const tags = normalizeText(joinValue(serie.tags));
+        const authors = normalizeText(joinVal(serie.author));
+        const artists = normalizeText(joinVal(serie.artist));
+        const tags = normalizeText(joinVal(serie.tags));
         const haystack = `${title} ${authors} ${artists} ${tags}`;
 
         if (!haystack.includes(normalizedQuery)) return null;

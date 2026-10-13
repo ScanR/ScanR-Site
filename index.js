@@ -18,40 +18,14 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ─────────────────────────────────  app.js ─────────────────────────────────────
-import { loadAllSeries, coverImg, escapeAttr, initHeader, prefersReducedMotion } from "./common.js?v=2";
+import {
+  loadAllSeries, coverImg, escapeAttr, initHeader, prefersReducedMotion, timeAgo, formatCredit, icon,
+} from "./common.js?v=3";
 
 initHeader();
 
-const konami = [
-  "arrowup",
-  "arrowup",
-  "arrowdown",
-  "arrowdown",
-  "arrowleft",
-  "arrowright",
-  "arrowleft",
-  "arrowright",
-  "b",
-  "a",
-];
-
 const latestContainer = document.querySelector(".latest-chapters");
 
-// Helpers pour ajuster les URLs de cover
-/*const appendSeriesCover = (url) => `${url.slice(0, -4)}-s.jpg`;
-const appendChapterCover = (url) => `${url.slice(0, -4)}-m.jpg`;*/
-function timeAgo(ms) {
-  const diff = Date.now() - ms;
-  const min = 60 * 1000,
-    h = 60 * min,
-    d = 24 * h,
-    w = 7 * d;
-  if (diff < min) return "à l’instant";
-  if (diff < h) return `${Math.floor(diff / min)} min`;
-  if (diff < d) return `${Math.floor(diff / h)} h`;
-  if (diff < w) return `${Math.floor(diff / d)} j`;
-  return new Date(ms).toLocaleDateString("fr-FR");
-}
 const maybeNewBadge = (lastUpdated) =>
   Date.now() - lastUpdated < 3 * 24 * 60 * 60 * 1000
     ? '<span class="new-badge">NOUVEAU</span>'
@@ -64,19 +38,6 @@ const maybeMultiChapter = (latest) =>
 
 const getChapitreNumber = (c) =>
   c.os ? "One Shot" : `Chapitre${c.latest ? `s ${c.chapter} - ${c.latest.at(-1)}` : ` ${c.chapter}`}`
-
-// Helpers for credits labels
-const isMultiple = (val) =>
-  Array.isArray(val)
-    ? val.length > 1
-    : typeof val === "string" && /,|&| et | and |\/|\//i.test(val);
-
-const joinVal = (val) => (Array.isArray(val) ? val.join(", ") : val);
-
-const formatCredit = (val, sing, plur) =>
-  val
-    ? `<div class="meta"><strong>${isMultiple(val) ? plur : sing} :</strong> ${joinVal(val)}</div>`
-    : "";
 
 function preserveLatestChapterMeta(target, source) {
   if (source.last_updated > target.last_updated) {
@@ -103,7 +64,7 @@ function renderChapter(c, i) {
       <div class="manga-title">${c.serieTitle}</div>
       <div class="chapter-title">${!c.latest && c.title ? c.title : "&nbsp;"}</div>
       <div class="chapter-number">${getChapitreNumber(c)}</div>
-      <div class="chapter-time"><i class="fas fa-clock"></i> ${timeAgo(
+      <div class="chapter-time">${icon("clock")} ${timeAgo(
         c.last_updated
       )}</div>
     </div>
@@ -129,9 +90,9 @@ function renderSeries(s) {
     <div class="series-info">
       <h3 class="series-title"><a class="series-link" href="${s.urlSerie}">${s.title}</a></h3>
       ${s.year    ? `<div class="meta">Année : ${s.year}</div>`   : ""}
-      ${formatCredit(s.author, 'Auteur', 'Auteurs')}
+      ${formatCredit(s.author, 'Auteur', 'Auteurs', 'div', 'meta')}
       ${s.artist && s.artist !== s.author
-        ? formatCredit(s.artist, 'Artiste', 'Artistes')
+        ? formatCredit(s.artist, 'Artiste', 'Artistes', 'div', 'meta')
         : ""}
       ${Array.isArray(s.tags)
         ? `

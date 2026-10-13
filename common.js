@@ -61,6 +61,50 @@ export async function loadSerie(slug) {
   return fetchJSON(`${URL_CDN}${index[slug]}`);
 }
 
+/* ===== Textes ==================================================== */
+
+// Pour les recherches : sans accents ni majuscules
+export const normalizeText = (value) =>
+  String(value || "")
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+
+// « il y a … » puis la date au-delà d'une semaine
+export function timeAgo(ms) {
+  const diff = Date.now() - ms;
+  const min = 60 * 1000,
+    h = 60 * min,
+    d = 24 * h,
+    w = 7 * d;
+  if (diff < min) return "à l’instant";
+  if (diff < h) return `${Math.floor(diff / min)} min`;
+  if (diff < d) return `${Math.floor(diff / h)} h`;
+  if (diff < w) return `${Math.floor(diff / d)} j`;
+  return new Date(ms).toLocaleDateString("fr-FR");
+}
+
+// Les crédits sont une liste ou une chaîne (« A, B », « A & B », « A et B »…)
+const isMultiple = (val) =>
+  Array.isArray(val)
+    ? val.length > 1
+    : typeof val === "string" && /,|&| et | and |\//i.test(val);
+
+export const joinVal = (val) => (Array.isArray(val) ? val.join(", ") : val || "");
+
+// « Auteur : X » ou « Auteurs : X, Y », dans la balise demandée ; rien si le crédit est vide
+export const formatCredit = (val, sing, plur, tag = "span", className = "") =>
+  val
+    ? `<${tag}${className ? ` class="${className}"` : ""}><strong>${isMultiple(val) ? plur : sing} :</strong> ${joinVal(val)}</${tag}>`
+    : "";
+
+/* ===== Icônes ==================================================== */
+
+// Symboles SVG définis dans le header commun (_partials/header.html)
+export const icon = (name, className = "") =>
+  `<svg class="icon${className ? ` ${className}` : ""}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+
 export const getStatusLabel = (serie) => {
   if (serie.os) return "One-shot";
   return serie.completed ? "Terminée" : "En cours";

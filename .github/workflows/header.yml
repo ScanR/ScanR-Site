@@ -1,0 +1,25 @@
+name: Vérifier le header commun
+
+on:
+  push:
+    paths:
+      - "_partials/**"
+      - "*.html"
+      - "scripts/sync-header.mjs"
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  header:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Échoue si une page n'a pas la dernière version de _partials/header.html
+      - run: node scripts/sync-header.mjs --check
