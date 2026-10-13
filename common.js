@@ -1,4 +1,7 @@
-// common.js – code partagé par les pages : config, données des séries, couvertures, progression de lecture
+// common.js – code partagé par les pages : config, données des séries, couvertures, en-tête, progression de lecture
+// Importé avec un ?v= (comme les scripts et style.css dans les pages HTML) : les fichiers sont gardés
+// 4 h en cache, il faut changer ce numéro partout à chaque modification pour éviter un mélange
+// d'ancien et de nouveau code.
 
 const PROD_CONFIG = {
   URL_CDN: "https://cdn.teamscanr.fr/",
@@ -87,6 +90,48 @@ export function coverImg(url, alt, { width, sizes, eager = false }) {
     decoding="async"
     alt="${escapeAttr(alt)}">`;
 }
+
+/* ===== En-tête : thème clair/sombre et menu mobile =============== */
+
+// La classe .dark est posée sur <html> par le script en ligne du <head>, avant le premier rendu
+// (pas de flash blanc). Le logo et l'icône du bouton suivent en CSS (.only-dark / .only-light).
+export function initHeader() {
+  const root = document.documentElement;
+  document.getElementById("theme-toggle")?.addEventListener("click", () => {
+    const isDark = root.classList.toggle("dark");
+    try {
+      localStorage.setItem("mv-theme", isDark ? "dark" : "light");
+    } catch {
+      // localStorage indisponible : le thème ne sera juste pas retenu
+    }
+  });
+
+  const header = document.querySelector("header");
+  const navToggle = document.getElementById("nav-toggle");
+  if (!header || !navToggle) return;
+  const setNavOpen = (open) => {
+    header.classList.toggle("nav-open", open);
+    navToggle.setAttribute("aria-expanded", String(open));
+    navToggle.setAttribute("aria-label", open ? "Fermer le menu" : "Ouvrir le menu");
+  };
+  navToggle.addEventListener("click", () => setNavOpen(!header.classList.contains("nav-open")));
+  // Un lien suivi, un clic en dehors ou Échap referment le menu
+  header.querySelector("nav")?.addEventListener("click", (e) => {
+    if (e.target.closest("a")) setNavOpen(false);
+  });
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("header")) setNavOpen(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && header.classList.contains("nav-open")) {
+      setNavOpen(false);
+      navToggle.focus();
+    }
+  });
+}
+
+export const prefersReducedMotion = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /* ===== Progression de lecture ==================================== */
 

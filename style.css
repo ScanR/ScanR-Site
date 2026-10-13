@@ -9,7 +9,7 @@
   --clr-accent: #ff6ba5;
   --opacity-card: 0.85;
 }
-body.dark {
+.dark {
   --clr-bg: #15171a;
   --clr-bg-card: #1e2024;
   --clr-text: #eceff4;
@@ -17,6 +17,12 @@ body.dark {
   --clr-primary: #8f9aff;
   --clr-accent: #ff7fb3;
   --opacity-card: 1;
+  color-scheme: dark;
+}
+/* Éléments propres à un thème (logo, icône du bouton de thème) */
+html:not(.dark) .only-dark,
+.dark .only-light {
+  display: none !important;
 }
 
 /* ==========   RESET + BASE   ========== */
@@ -55,7 +61,7 @@ header {
   z-index: 500;
   transition: background 0.35s ease, border 0.35s ease;
 }
-body.dark header {
+.dark header {
   background: rgba(21, 23, 26, 0.6);
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -161,7 +167,7 @@ body.dark header {
   z-index: 700;
 }
 
-body.dark .search-panel {
+.dark .search-panel {
   background: rgba(30, 32, 36, 0.96);
 }
 
@@ -350,6 +356,26 @@ nav a:hover::after {
   width: 100%;
 }
 
+/* Bouton du menu, visible seulement sur mobile */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: 2px solid rgba(116, 92, 247, 0.35);
+  color: var(--clr-text);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+}
+.nav-open .nav-toggle {
+  border-color: var(--clr-primary);
+  color: var(--clr-primary);
+}
+
 /* ==========   MAIN   ========== */
 main {
   max-width: 1400px;
@@ -358,6 +384,10 @@ main {
 }
 section {
   margin-bottom: 4rem;
+}
+/* Les ancres du menu ne cachent pas le titre de section sous l'en-tête collant */
+section[id] {
+  scroll-margin-top: 6rem;
 }
 .section-title {
   font-size: 2rem;
@@ -492,6 +522,7 @@ section {
   gap: 2rem;
 }
 .series-card {
+  position: relative;
   display: flex;
   align-items: stretch;
   background: var(--clr-bg-card);
@@ -536,15 +567,24 @@ section {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
-.series-redirect {
+/* Le lien du titre couvre toute la carte */
+.series-link {
+  color: inherit;
+  text-decoration: none;
+}
+.series-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
   z-index: 1;
-  width: 100%;
-  margin-left: -100%;
 }
 .meta {
-  z-index: 2;
   font-size: 0.9rem;
   color: var(--clr-text-sub);
+}
+.series-card .chapter-number-stylish {
+  position: relative;
+  z-index: 2;
 }
 .tags {
   display: flex;
@@ -732,8 +772,12 @@ section {
 .carousel-track {
   cursor: grab;
 }
+/* Pendant un glisser à la souris : pas d'aimantation ni de défilement animé, qui le saccadent */
 .carousel-track.active {
   cursor: grabbing;
+  scroll-snap-type: none;
+  scroll-behavior: auto;
+  user-select: none;
 }
 @media (max-width: 1024px) {
   .carousel-track .chapter-card {
@@ -746,10 +790,58 @@ section {
   }
 }
 
+/* Sur mobile, la navigation passe dans un menu déroulant sous l'en-tête */
 @media (max-width: 768px) {
+  .nav-toggle {
+    display: flex;
+  }
+  header nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 0.5rem 5% 1rem;
+    background: var(--clr-bg-card);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    box-shadow: 0 18px 30px rgba(0, 0, 0, 0.12);
+  }
+  .nav-open nav {
+    display: block;
+  }
   nav ul {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 0.5rem;
+    border-radius: 10px;
+  }
+  nav a:hover {
+    background: rgba(116, 92, 247, 0.08);
+  }
+  nav a::after {
     display: none;
   }
+  /* Les réseaux passent dans le menu pour laisser de la place à l'en-tête */
+  .header-actions .social-icons {
+    display: none;
+  }
+  nav .nav-social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1rem;
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(116, 92, 247, 0.15);
+  }
+}
+/* Copie des réseaux sociaux pour le menu mobile */
+.nav-social {
+  display: none;
 }
 
 /* ==========   PAGE SÉRIE   ========== */
@@ -1005,9 +1097,107 @@ section {
 /* ==== Bouton de tri ==== */
 .chapters-header {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1rem;
+}
+.chapters-tools {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* ==== Recherche « Aller au chapitre » ==== */
+.chapter-filter {
+  position: relative;
+}
+.chapter-filter[hidden] {
+  display: none;
+}
+.chapter-filter i {
+  position: absolute;
+  left: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--clr-text-sub);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+.chapter-filter input {
+  width: 13rem;
+  padding: 0.55rem 0.8rem 0.55rem 2.2rem;
+  border: none;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.9rem;
+  background: var(--clr-bg-card);
+  color: var(--clr-text);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+.chapter-filter input::placeholder {
+  color: var(--clr-text-sub);
+}
+.chapters-empty {
+  padding: 1rem 1.2rem;
+  color: var(--clr-text-sub);
+}
+
+/* ==== Chapitres regroupés par tome ==== */
+.volume-group > summary {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.8rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  cursor: pointer;
+  list-style: none;
+  background: rgba(116, 92, 247, 0.08);
+  transition: background 0.2s ease;
+}
+.volume-group > summary::-webkit-details-marker {
+  display: none;
+}
+.volume-group > summary::before {
+  content: "\f054"; /* chevron Font Awesome */
+  font-family: "Font Awesome 6 Free";
+  font-weight: 900;
+  font-size: 0.75rem;
+  color: var(--clr-primary);
+  transition: transform 0.2s ease;
+}
+.volume-group[open] > summary::before {
+  transform: rotate(90deg);
+}
+.volume-group > summary:hover {
+  background: rgba(116, 92, 247, 0.14);
+}
+.volume-name {
+  font-weight: 700;
+  color: var(--clr-text);
+}
+.volume-range {
+  font-size: 0.85rem;
+  color: var(--clr-text-sub);
+}
+.volume-chapters {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 0 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .chapters-tools {
+    width: 100%;
+  }
+  .chapter-filter {
+    flex: 1;
+  }
+  .chapter-filter input {
+    width: 100%;
+  }
 }
 
 /* === Bouton de tri “joli” === */
@@ -1080,10 +1270,21 @@ section {
 /* Chapitres déjà ouverts dans le lecteur */
 .chapter-card-vertical.is-read { opacity: .55; }
 .chapter-card-vertical.is-read:hover { opacity: 1; }
+/* Le lien du numéro couvre toute la ligne, le lien du groupe passe au-dessus */
+.chapter-card-vertical { position: relative; }
+.chapter-link { color: inherit; text-decoration: none; }
+.chapter-link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
 .c-group-link {
+  position: relative;
+  z-index: 1;
   color: var(--clr-accent);
   font-weight: 600;
   white-space: nowrap;
+  text-decoration: none;
   cursor: pointer;
   transition: opacity .2s ease;
 }
@@ -1101,12 +1302,12 @@ section {
 @media (max-width: 768px) {
   .chapter-card-vertical {
     grid-template-columns: auto 1fr;
-    grid-template-rows: repeat(3, auto);
   }
   .c-vol { display: none; }
 }
 
 .button {
+  font-family: inherit;
   background: var(--clr-primary);
   width: fit-content;
   border: none;
@@ -1138,10 +1339,95 @@ section {
   background: hsl(from var(--clr-text-sub) h s calc(l - 10 ));    
   cursor: not-allowed;
 }
-body.dark .button-disabled {
+.dark .button-disabled {
   background: hsl(from var(--clr-text-sub) h s calc(l - 50  ));
   color: hsl(from var(--clr-text-sub) h s calc(l - 30 ));
 }
-body.dark .button-disabled:hover {
+.dark .button-disabled:hover {
   background: hsl(from var(--clr-text-sub) h s calc(l - 50));
+}
+
+/* ==========   PAGE 404 / SÉRIE INTROUVABLE   ========== */
+.not-found {
+  max-width: 560px;
+  margin: 4rem auto;
+  padding: 0 5%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  text-align: center;
+}
+.not-found .not-found-code {
+  font-size: 5rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--clr-primary);
+}
+.not-found h1 {
+  font-size: 1.8rem;
+}
+.not-found p {
+  color: var(--clr-text-sub);
+}
+.not-found-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+/* ==========   FOCUS CLAVIER   ========== */
+:focus-visible {
+  outline: 3px solid var(--clr-primary);
+  outline-offset: 3px;
+}
+/* Dans le carrousel, le contour serait coupé par le défilement : on le met à l'intérieur */
+.chapter-card:focus-visible {
+  outline-offset: -3px;
+}
+/* Les liens qui couvrent une carte entourent la carte entière */
+.series-link:focus-visible,
+.chapter-link:focus-visible {
+  outline: none;
+}
+.series-card:has(.series-link:focus-visible),
+.chapter-card-vertical:has(.chapter-link:focus-visible) {
+  outline: 3px solid var(--clr-primary);
+  outline-offset: 3px;
+}
+
+/* ==========   MOUVEMENTS RÉDUITS   ========== */
+@media (prefers-reduced-motion: reduce) {
+  html,
+  .carousel-track {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .section-title,
+  .chapter-card,
+  .series-card {
+    animation: none;
+    opacity: 1;
+  }
+  .serie-container {
+    transform: none;
+  }
+  .chapter-card:hover,
+  .series-card:hover,
+  .chapter-card-vertical:hover,
+  .chapter-card:hover .chapter-cover img,
+  .series-card:hover .series-cover img,
+  .search-toggle:hover,
+  .search-form button:hover,
+  .search-result-item:hover,
+  .toggle-order:hover {
+    transform: none;
+  }
 }

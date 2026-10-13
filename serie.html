@@ -2,6 +2,15 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Thème appliqué avant le premier rendu : pas de flash blanc ni de logo de la mauvaise couleur
+      try {
+        const theme = localStorage.getItem("mv-theme");
+        if (theme === "dark" || (!theme && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch {}
+    </script>
     <title>ScanR – Fiche série</title>
     <!-- Police + icônes + style global -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -9,7 +18,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/png" href="img/favicon.png" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha512-…" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link rel="stylesheet" href="style.css" />
+    <!-- Les ?v= forcent le rechargement après une mise à jour (fichiers gardés 4 h en cache) -->
+    <link rel="stylesheet" href="style.css?v=2" />
   </head>
 
   <body>
@@ -18,16 +28,25 @@
       <div class="header-container">
         <div class="logo">
           <a
-            href="index.html"
+            href="/"
           >
-            <img src="img/scanr.webp" alt="ScanR Logo" />
+            <img class="only-dark" src="img/scanr.webp" alt="ScanR Logo" />
+            <img class="only-light" src="img/scanr-black.webp" alt="ScanR Logo" />
           </a>
         </div>
 
-        <nav>
+        <nav id="site-nav" aria-label="Navigation principale">
           <ul>
-            <li><a href="index.html"><i class="fas fa-home"></i> Accueil</a></li>
+            <li><a href="/"><i class="fas fa-home"></i> Accueil</a></li>
+            <li><a href="/#on-going-section"><i class="fa-solid fa-book-open"></i> En cours</a></li>
+            <li><a href="/#one-shot-section"><i class="fa-solid fa-scroll"></i> One-shot</a></li>
+            <li><a href="/#completed-section"><i class="fas fa-book"></i> Terminées</a></li>
           </ul>
+          <div class="nav-social">
+            <a href="https://www.youtube.com/channel/UCCaNnBazWhyzwKpgFUGTE7g" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> YouTube</a>
+            <a href="https://discord.com/invite/Pdmfmqk" target="_blank" rel="noopener noreferrer"><i class="fab fa-discord"></i> Discord</a>
+            <a href="https://x.com/TeamScanR" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i> X</a>
+          </div>
         </nav>
 
         <div class="header-actions">
@@ -66,7 +85,8 @@
             <a href="https://discord.com/invite/Pdmfmqk" target="_blank" rel="noopener noreferrer" aria-label="Discord"><i class="fab fa-discord"></i></a>
             <a href="https://x.com/TeamScanR" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="fab fa-twitter"></i></a>
           </div>
-          <button id="theme-toggle" class="theme-toggle" aria-label="Changer de thème"><i class="fas fa-moon"></i></button>
+          <button id="theme-toggle" class="theme-toggle" aria-label="Changer de thème"><i class="fas fa-moon only-light"></i><i class="fas fa-sun only-dark"></i></button>
+          <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav"><i class="fas fa-bars"></i></button>
         </div>
       </div>
     </header>
@@ -76,7 +96,7 @@
       <!-- Le contenu est injecté par serie.js -->
     </main>
 
-    <script src="header-search.js" type="module"></script>
-    <script src="serie.js" type="module"></script>
+    <script src="header-search.js?v=2" type="module"></script>
+    <script src="serie.js?v=2" type="module"></script>
   </body>
 </html>

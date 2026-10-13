@@ -14,7 +14,7 @@ let indice = 0;
 
 
 const init = async () => {
-  const { loadConfig } = await import("../common.js");
+  const { loadConfig } = await import("../common.js?v=2");
   CONFIG = await loadConfig();
 
   const proxyCubari = "/proxy/api/imgchest/chapter/9rydmwp6wyk";

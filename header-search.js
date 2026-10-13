@@ -1,4 +1,4 @@
-import { loadAllSeries, getStatusLabel, thumbUrl } from "./common.js";
+import { loadAllSeries, getStatusLabel, thumbUrl } from "./common.js?v=2";
 
 document.addEventListener("DOMContentLoaded", () => {
   const toggle = document.getElementById("header-search-toggle");

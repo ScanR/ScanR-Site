@@ -1,42 +1,3 @@
-document.addEventListener("DOMContentLoaded", () => {
-  const toggleBtn = document.getElementById("theme-toggle");
-  const logoImg = document.querySelector(".logo img");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const savedTheme = localStorage.getItem("mv-theme");
-
-  // 1. Initialisation du thème et du logo au chargement
-  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-    document.body.classList.add("dark");
-  } else {
-    document.body.classList.remove("dark");
-  }
-
-  const updateIcon = () => {
-    const icon = toggleBtn.querySelector("i");
-    icon.className = document.body.classList.contains("dark")
-      ? "fas fa-sun"
-      : "fas fa-moon";
-  };
-
-  const updateLogo = () => {
-    logoImg.src = document.body.classList.contains("dark")
-      ? "img/scanr.webp"
-      : "img/scanr-black.webp";
-  };
-
-  // applique tout de suite
-  updateIcon();
-  updateLogo();
-
-  // 2. Au clic, on bascule thème + logo + icône + stockage
-  toggleBtn.addEventListener("click", () => {
-    const isDark = document.body.classList.toggle("dark");
-    localStorage.setItem("mv-theme", isDark ? "dark" : "light");
-    updateIcon();
-    updateLogo();
-  });
-});
-
 // ==========  ANIMATION ON SCROLL  ==========
 document.addEventListener("DOMContentLoaded", () => {
   const observer = new IntersectionObserver(
@@ -57,7 +18,9 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // ─────────────────────────────────  app.js ─────────────────────────────────────
-import { loadAllSeries, coverImg } from "./common.js";
+import { loadAllSeries, coverImg, escapeAttr, initHeader, prefersReducedMotion } from "./common.js?v=2";
+
+initHeader();
 
 const konami = [
   "arrowup",
@@ -155,16 +118,16 @@ function renderSeries(s) {
   );
 
   // 2) Lien complet vers le dernier chapitre
-  //    s.urlSerie vaut "https://teamscanr.fr/read/gist/<base64>"
   const lastChapUrl = `${s.urlSerie}/${lastChap}/1/`;
 
+  // Le lien du titre couvre toute la carte (::after), le lien « Dernier chapitre » passe au-dessus
   return `
   <div class="series-card" >
     <div class="series-cover">
       ${coverImg(s.cover, `${s.title} – Cover`, { width: 200, sizes: "140px" })}
     </div>
     <div class="series-info">
-      <div class="series-title">${s.title}</div>
+      <h3 class="series-title"><a class="series-link" href="${s.urlSerie}">${s.title}</a></h3>
       ${s.year    ? `<div class="meta">Année : ${s.year}</div>`   : ""}
       ${formatCredit(s.author, 'Auteur', 'Auteurs')}
       ${s.artist && s.artist !== s.author
@@ -182,9 +145,8 @@ function renderSeries(s) {
               Dernier chapitre :
               <a
                 href="${lastChapUrl}"
-                target="_blank"
                 class="chapter-number-stylish"
-                onclick="event.stopPropagation()"
+                aria-label="${escapeAttr(`Lire le chapitre ${lastChap} de ${s.title}`)}"
               >
                 ${lastChap}
               </a>
@@ -192,7 +154,6 @@ function renderSeries(s) {
           : ""
       }
     </div>
-    <a class='series-redirect' href='${s.slug}'></a>
   </div>`;
 }
 
@@ -272,14 +233,13 @@ async function bootstrap() {
     // Initialisation des flèches et du drag-to-scroll
     const prevBtn = document.querySelector('.carousel-prev');
     const nextBtn = document.querySelector('.carousel-next');
-    let isDragging = false, startX = 0, scrollStart = 0;
 
     nextBtn.addEventListener('click', () => {
       const visibleWidth = track.clientWidth;
       const maxScroll = track.scrollWidth - visibleWidth;
       track.scrollTo({
         left: track.scrollLeft >= maxScroll ? 0 : track.scrollLeft + visibleWidth,
-        behavior: 'smooth'
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth'
       });
     });
 
@@ -288,40 +248,46 @@ async function bootstrap() {
       const maxScroll = track.scrollWidth - visibleWidth;
       track.scrollTo({
         left: track.scrollLeft <= 0 ? maxScroll : track.scrollLeft - visibleWidth,
-        behavior: 'smooth'
+        behavior: prefersReducedMotion() ? 'auto' : 'smooth'
       });
     });
 
-    track.addEventListener('mousedown', e => {
-      isDragging = true;
-      startX = e.pageX - track.offsetLeft;
+    // Glisser à la souris uniquement : au doigt, le défilement natif du navigateur suffit.
+    // Au-delà de 5 px c'est un glisser, et le clic qui suit le relâchement n'ouvre pas le chapitre.
+    let dragStartX = null, scrollStart = 0, dragged = false;
+
+    track.addEventListener('pointerdown', e => {
+      if (e.pointerType !== 'mouse' || e.button !== 0) return;
+      dragStartX = e.clientX;
       scrollStart = track.scrollLeft;
+      dragged = false;
+    });
+
+    document.addEventListener('pointermove', e => {
+      if (dragStartX === null) return;
+      const walk = e.clientX - dragStartX;
+      if (!dragged && Math.abs(walk) < 5) return;
+      dragged = true;
       track.classList.add('active');
+      track.scrollLeft = scrollStart - walk;
     });
 
-    document.addEventListener('mouseup', () => {
-      isDragging = false;
+    document.addEventListener('pointerup', () => {
+      if (dragStartX === null) return;
+      dragStartX = null;
       track.classList.remove('active');
+      // Le clic arrive juste après le pointerup : on le laisse passer par le filtre ci-dessous
+      setTimeout(() => { dragged = false; });
     });
 
-    track.addEventListener('mousemove', e => {
-      if (!isDragging) return;
+    track.addEventListener('click', e => {
+      if (!dragged) return;
       e.preventDefault();
-      const x = e.pageX - track.offsetLeft;
-      const walk = (x - startX) * 1.5;
-      track.scrollLeft = scrollStart - walk;
-    });
+      e.stopPropagation();
+    }, true);
 
-    // Touch events
-    track.addEventListener('touchstart', e => {
-      startX = e.touches[0].pageX - track.offsetLeft;
-      scrollStart = track.scrollLeft;
-    });
-    track.addEventListener('touchmove', e => {
-      const x = e.touches[0].pageX - track.offsetLeft;
-      const walk = (x - startX) * 1.5;
-      track.scrollLeft = scrollStart - walk;
-    });
+    // Empêche le glisser-déposer natif des liens et des images, qui interromprait le défilement
+    track.addEventListener('dragstart', e => e.preventDefault());
 
     // Konami
     const konamiSerie = allSeries.find(s => s.konami);

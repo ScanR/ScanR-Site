@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <script>
+      // Thème appliqué avant le premier rendu : pas de flash blanc ni de logo de la mauvaise couleur
+      try {
+        const theme = localStorage.getItem("mv-theme");
+        if (theme === "dark" || (!theme && matchMedia("(prefers-color-scheme: dark)").matches)) {
+          document.documentElement.classList.add("dark");
+        }
+      } catch {}
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Page introuvable | ScanR</title>
+    <!-- Servie par GitHub Pages pour toute URL inconnue, quel que soit le dossier : chemins absolus -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/png" href="/img/favicon.png" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- Les ?v= forcent le rechargement après une mise à jour (fichiers gardés 4 h en cache) -->
+    <link rel="stylesheet" href="/style.css?v=2" />
+  </head>
+
+  <body>
+    <!-- === Header identique à index.html ==================================== -->
+    <header>
+      <div class="header-container">
+        <div class="logo">
+          <a href="/">
+            <img class="only-dark" src="/img/scanr.webp" alt="ScanR Logo" />
+            <img class="only-light" src="/img/scanr-black.webp" alt="ScanR Logo" />
+          </a>
+        </div>
+
+        <nav id="site-nav" aria-label="Navigation principale">
+          <ul>
+            <li><a href="/"><i class="fas fa-home"></i> Accueil</a></li>
+            <li><a href="/#on-going-section"><i class="fa-solid fa-book-open"></i> En cours</a></li>
+            <li><a href="/#one-shot-section"><i class="fa-solid fa-scroll"></i> One-shot</a></li>
+            <li><a href="/#completed-section"><i class="fas fa-book"></i> Terminées</a></li>
+          </ul>
+          <div class="nav-social">
+            <a href="https://www.youtube.com/channel/UCCaNnBazWhyzwKpgFUGTE7g" target="_blank" rel="noopener noreferrer"><i class="fab fa-youtube"></i> YouTube</a>
+            <a href="https://discord.com/invite/Pdmfmqk" target="_blank" rel="noopener noreferrer"><i class="fab fa-discord"></i> Discord</a>
+            <a href="https://x.com/TeamScanR" target="_blank" rel="noopener noreferrer"><i class="fab fa-twitter"></i> X</a>
+          </div>
+        </nav>
+
+        <div class="header-actions">
+          <div class="header-search">
+            <button
+              id="header-search-toggle"
+              class="search-toggle"
+              type="button"
+              aria-label="Rechercher une série"
+              aria-expanded="false"
+              aria-controls="header-search-panel"
+            >
+              <i class="fas fa-search"></i>
+            </button>
+            <div id="header-search-panel" class="search-panel" hidden>
+              <form class="search-form" role="search">
+                <label class="sr-only" for="header-search-input">
+                  Rechercher une série
+                </label>
+                <input
+                  id="header-search-input"
+                  type="search"
+                  placeholder="Rechercher une série, un auteur, un genre..."
+                  autocomplete="off"
+                />
+                <button type="submit">Chercher</button>
+              </form>
+              <p class="search-results-meta" aria-live="polite">
+                Commencez à taper pour rechercher une série.
+              </p>
+              <div class="search-results"></div>
+            </div>
+          </div>
+          <div class="social-icons">
+            <a href="https://www.youtube.com/channel/UCCaNnBazWhyzwKpgFUGTE7g" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            <a href="https://discord.com/invite/Pdmfmqk" target="_blank" rel="noopener noreferrer" aria-label="Discord"><i class="fab fa-discord"></i></a>
+            <a href="https://x.com/TeamScanR" target="_blank" rel="noopener noreferrer" aria-label="X"><i class="fab fa-twitter"></i></a>
+          </div>
+          <button id="theme-toggle" class="theme-toggle" aria-label="Changer de thème"><i class="fas fa-moon only-light"></i><i class="fas fa-sun only-dark"></i></button>
+          <button id="nav-toggle" class="nav-toggle" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="site-nav"><i class="fas fa-bars"></i></button>
+        </div>
+      </div>
+    </header>
+    <!-- ====================================================================== -->
+
+    <main class="not-found">
+      <p class="not-found-code" aria-hidden="true">404</p>
+      <h1>Page introuvable</h1>
+      <p>
+        Cette page n’existe pas ou a été déplacée. La série que vous cherchez
+        est sûrement sur l’accueil, ou à portée de recherche.
+      </p>
+      <div class="not-found-actions">
+        <a class="button" href="/"><i class="fas fa-home"></i> Retour à l’accueil</a>
+        <button id="not-found-search" class="button button-secondary" type="button">
+          <i class="fas fa-search"></i> Rechercher une série
+        </button>
+      </div>
+    </main>
+
+    <script src="/header-search.js?v=2" type="module"></script>
+    <script type="module">
+      import { initHeader } from "/common.js?v=2";
+
+      initHeader();
+      document.getElementById("not-found-search").addEventListener("click", (e) => {
+        // Sinon ce clic, hors de la zone de recherche, refermerait aussitôt le panneau
+        e.stopPropagation();
+        document.getElementById("header-search-toggle").click();
+      });
+    </script>
+  </body>
+</html>

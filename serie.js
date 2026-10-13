@@ -1,8 +1,9 @@
 // serie.js – affiche la fiche d’une série à partir du slug de l’URL
 // Exemple : https://teamscanr.fr/kaguya-sama
-import { loadSerie, getStatusLabel, coverImg, readProgress } from "./common.js";
+import { loadSerie, getStatusLabel, coverImg, readProgress, initHeader } from "./common.js?v=2";
 
-// Groupes partenaires (collabs) : nom affiché dans le JSON → site du groupe
+// Groupes partenaires (collabs) : nom affiché dans le JSON → site du groupe.
+// Ce sont de vrais liens, posés au-dessus du lien du chapitre (pas de lien dans un lien).
 const GROUP_LINKS = {
   "Manga-Corporation": "https://manga-corporation.com/",
 };
@@ -12,40 +13,17 @@ const renderGroups = groups => Object.keys(groups || {})
   .map(name => name.trim())
   .filter(Boolean)
   .map(name => GROUP_LINKS[name]
-    ? `<span class="c-group-link" role="link" tabindex="0" data-href="${GROUP_LINKS[name]}">${name}</span>`
+    ? `<a class="c-group-link" href="${GROUP_LINKS[name]}" target="_blank" rel="noopener noreferrer">${name}</a>`
     : name)
   .join(", ");
 
 document.addEventListener("DOMContentLoaded", async () => {
-  /* ---------------------------------------------------------------- 
-   * 1. Gestion light/dark + logo (copié de votre index.js)
+  /* ----------------------------------------------------------------
+   * 1. En-tête (thème, menu mobile)
    * ---------------------------------------------------------------- */
-  const toggleBtn = document.getElementById("theme-toggle");
-  const logoImg   = document.querySelector(".logo img");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const savedTheme = localStorage.getItem("mv-theme");
+  initHeader();
 
-  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
-    document.body.classList.add("dark");
-  }
-
-  const updateIcon = () => {
-    const icon = toggleBtn.querySelector("i");
-    icon.className = document.body.classList.contains("dark") ? "fas fa-sun" : "fas fa-moon";
-  };
-  const updateLogo = () => {
-    logoImg.src = document.body.classList.contains("dark") ? "img/scanr.webp" : "img/scanr-black.webp";
-  };
-  updateIcon();
-  updateLogo();
-  toggleBtn.addEventListener("click", () => {
-    const isDark = document.body.classList.toggle("dark");
-    localStorage.setItem("mv-theme", isDark ? "dark" : "light");
-    updateIcon();
-    updateLogo();
-  });
-
-  /* ---------------------------------------------------------------- 
+  /* ----------------------------------------------------------------
    * 2. Récupération des données de la série
    * ---------------------------------------------------------------- */
   const getSlug = url => new URL(url).pathname.match(/[^\/]+/g)
@@ -71,8 +49,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 /* ===== Fonctions utilitaires ===================================== */
 function showError(msg) {
-  document.getElementById("serie-page").innerHTML = `<p style="padding:2rem;color:var(--clr-accent)">${msg}</p>`;
+  document.getElementById("serie-page").innerHTML = `
+    <div class="not-found">
+      <h1>${msg}</h1>
+      <a class="button" href="/"><i class="fas fa-home"></i> Retour à l’accueil</a>
+    </div>`;
 }
+
+const normalizeText = value => String(value || "")
+  .normalize("NFD")
+  .replace(/[̀-ͯ]/g, "")
+  .toLowerCase()
+  .trim();
 
 /* Calcule “il y a …” */
 function timeAgo(ms) {
@@ -201,9 +189,16 @@ function buildPage(serie) {
     <div class="chapters-section">
       <div class="chapters-header">
         <h2 class="section-title">Chapitres</h2>
-        <button id="toggle-order" class="toggle-order" aria-label="Trier">
-            <i class="fas fa-sort-numeric-up"></i>
-        </button>
+        <div class="chapters-tools">
+          <div class="chapter-filter" hidden>
+            <label class="sr-only" for="chapter-filter-input">Aller au chapitre (numéro ou titre)</label>
+            <i class="fas fa-search" aria-hidden="true"></i>
+            <input id="chapter-filter-input" type="search" placeholder="Aller au chapitre…" autocomplete="off">
+          </div>
+          <button id="toggle-order" class="toggle-order" aria-label="Inverser l’ordre des chapitres">
+              <i class="fas fa-sort-numeric-up"></i>
+          </button>
+        </div>
       </div>
       <div class="chapters-list"></div>
     </div>
@@ -221,42 +216,127 @@ function buildPage(serie) {
   const progress = readProgress(serie.slug);
   const readChapters = new Set(progress?.read || []);
   let ascending = false;
+  let query = "";
   const listEl   = content.querySelector(".chapters-list");
   const btnOrder = content.querySelector("#toggle-order");
+  const filterInput = content.querySelector("#chapter-filter-input");
+  const chapterUrl = num => `/${serie.slug}/${num}/1/`;
+
+  // Les longues séries sont regroupées par tome (repliables) ; les chapitres sans tome
+  // (souvent les plus récents, pas encore reliés) forment un groupe « Hors tome ».
+  const groupByVolume = new Set(chaptersArray.map(c => c.data.volume).filter(Boolean)).size > 1;
+  const volumeKey = c => String(c.data.volume || "");
+  // Tomes ouverts : celui des derniers chapitres et celui de la lecture en cours
+  const openVolumes = new Set();
+  const latestChapter = chaptersArray.reduce(
+    (max, curr) => (parseFloat(curr.num) > parseFloat(max.num) ? curr : max)
+  );
+  openVolumes.add(volumeKey(latestChapter));
+  if (progress?.chapter && serie.chapters[progress.chapter]) {
+    openVolumes.add(String(serie.chapters[progress.chapter].volume || ""));
+  }
+
+  // « 150 » trouve les chapitres 150, 150.5, 151…; du texte cherche dans les titres
+  const matchesQuery = ({num, data}) => {
+    if (!query) return true;
+    const q = normalizeText(query).replace(/^chap(itre)?\.?\s*/, "").replace(",", ".");
+    return num.startsWith(q) || normalizeText(data.title).includes(q);
+  };
+
+  const renderChapterRow = ({num, data}) => {
+    const grp  = renderGroups(data.groups);
+    const date = new Date(data.last_updated*1000)
+      .toLocaleDateString("fr-FR", {day:"2-digit",month:"2-digit",year:"numeric"});
+    const vol  = data.volume ? `Tome ${data.volume}` : "";
+
+    // Le lien du numéro couvre toute la ligne (::after), le lien du groupe passe au-dessus
+    const isRead = readChapters.has(num);
+    const card = document.createElement("div");
+    card.className = `chapter-card-vertical${isRead ? " is-read" : ""}`;
+    if (isRead) card.title = "Déjà lu";
+    card.innerHTML = `
+      <a class="c-num chapter-link" href="${chapterUrl(num)}">${singleOneShot ? "One-shot" : `Chap. ${num}`}${
+        isRead ? '<span class="sr-only"> (déjà lu)</span>' : ""
+      }</a>
+      <span class="c-vol">${vol}</span>
+      <span class="c-title">${data.title||""}</span>
+      <span class="c-group">${grp}</span>
+      <span class="c-date">${date}</span>
+    `;
+    return card;
+  };
+
+  const renderVolumeGroup = (key, chapters) => {
+    const nums = chapters.map(c => parseFloat(c.num));
+    const first = chapters.find(c => parseFloat(c.num) === Math.min(...nums)).num;
+    const last = chapters.find(c => parseFloat(c.num) === Math.max(...nums)).num;
+    const details = document.createElement("details");
+    details.className = "volume-group";
+    details.open = openVolumes.has(key);
+    details.innerHTML = `
+      <summary>
+        <span class="volume-name">${key ? `Tome ${key}` : "Hors tome"}</span>
+        <span class="volume-range">${first === last ? `Chap. ${first}` : `Chap. ${first} à ${last}`}
+          · ${chapters.length} chapitre${chapters.length > 1 ? "s" : ""}</span>
+      </summary>
+      <div class="volume-chapters"></div>
+    `;
+    details.querySelector(".volume-chapters").append(...chapters.map(renderChapterRow));
+    details.addEventListener("toggle", () => {
+      if (details.open) openVolumes.add(key);
+      else openVolumes.delete(key);
+    });
+    return details;
+  };
 
   // 5) Fonction de rendu
   function renderChapters() {
-    // trie
     const sorted = chaptersArray
-      .slice() // clone pour ne pas perturber l’original
+      .filter(matchesQuery)
       .sort((a,b) => ascending
         ? parseFloat(a.num) - parseFloat(b.num)
         : parseFloat(b.num) - parseFloat(a.num)
       );
-    // vide
     listEl.innerHTML = "";
-    // génère
-    sorted.forEach(({num, data}) => {
-      const grp  = renderGroups(data.groups);
-      const date = new Date(data.last_updated*1000)
-        .toLocaleDateString("fr-FR", {day:"2-digit",month:"2-digit",year:"numeric"});
-      const vol  = data.volume ? `<span class="c-vol">Tome ${data.volume}</span>` : "";
 
-      const isRead = readChapters.has(num);
-      const card = document.createElement("a");
-      card.className = `chapter-card-vertical${isRead ? " is-read" : ""}`;
-      if (isRead) card.title = "Déjà lu";
-      card.innerHTML = `
-        <span class="c-num">${singleOneShot ? "One-shot" : `Chap. ${num}`}${
-          isRead ? '<span class="sr-only"> (déjà lu)</span>' : ""
-        }</span>
-        <span class="c-vol">${vol}</span>
-        <span class="c-title">${data.title||""}</span>
-        <span class="c-group">${grp}</span>
-        <span class="c-date">${date}</span>
-      `;
-      card.setAttribute("href",`/${serie.slug}/${num}/1/`);
-      listEl.appendChild(card);
+    if (!sorted.length) {
+      const empty = document.createElement("p");
+      empty.className = "chapters-empty";
+      empty.textContent = `Aucun chapitre ne correspond à « ${query} ».`;
+      listEl.appendChild(empty);
+      return;
+    }
+
+    // Pendant une recherche, liste à plat des résultats
+    if (!groupByVolume || query) {
+      listEl.append(...sorted.map(renderChapterRow));
+      return;
+    }
+
+    // Les tomes arrivent dans l'ordre de leur premier chapitre, donc dans le sens du tri
+    const volumes = new Map();
+    sorted.forEach(c => {
+      const key = volumeKey(c);
+      if (!volumes.has(key)) volumes.set(key, []);
+      volumes.get(key).push(c);
+    });
+    listEl.append(...[...volumes].map(([key, chapters]) => renderVolumeGroup(key, chapters)));
+  }
+
+  // Recherche « Aller au chapitre » : utile dès qu'il y a un peu de chapitres
+  if (chaptersArray.length > 10) {
+    content.querySelector(".chapter-filter").hidden = false;
+    filterInput.addEventListener("input", () => {
+      query = filterInput.value.trim();
+      renderChapters();
+    });
+    // Entrée ouvre le chapitre exact s'il existe, sinon le premier résultat
+    filterInput.addEventListener("keydown", e => {
+      if (e.key !== "Enter" || !query) return;
+      e.preventDefault();
+      const exact = serie.chapters[query.replace(",", ".")] ? query.replace(",", ".") : null;
+      const href = exact ? chapterUrl(exact) : listEl.querySelector(".chapter-link")?.getAttribute("href");
+      if (href) window.location.href = href;
     });
   }
   const firstChapter = chaptersArray.reduce(
@@ -276,18 +356,6 @@ function buildPage(serie) {
       : `<i class="fa-solid fa-circle-play"></i> Continuer · Chap. ${progress.chapter}`;
   }
 
-  // Liens des groupes partenaires : ouvre leur site sans suivre le lien du chapitre
-  const openGroupLink = e => {
-    const link = e.target.closest(".c-group-link");
-    if (!link) return;
-    if (e.type === "keydown" && e.key !== "Enter") return;
-    e.preventDefault();
-    e.stopPropagation();
-    window.open(link.dataset.href, "_blank", "noopener");
-  };
-  listEl.addEventListener("click", openGroupLink);
-  listEl.addEventListener("keydown", openGroupLink);
-
   // 6) Écouteur sur le bouton
     btnOrder.addEventListener("click", () => {
     ascending = !ascending;
@@ -295,6 +363,8 @@ function buildPage(serie) {
     icon.className = ascending
         ? "fas fa-sort-numeric-down"
         : "fas fa-sort-numeric-up";
+    // Le tome qui arrive en tête de liste s'ouvre
+    openVolumes.add(volumeKey(ascending ? firstChapter : latestChapter));
     renderChapters();
     });
 
