@@ -45,4 +45,25 @@
   }
   window.addEventListener("popstate", () => setTimeout(updateTitle, 0));
   updateTitle();
+
+  // Couleurs du site (style.css) à la place des thèmes « Cubari » (par défaut) et « Light ».
+  // Cubari applique ses thèmes en JS (styles inline sur <html>) : on intercepte ThemeManager.setTheme.
+  // Arguments : (interface, fond du lecteur, accent, texte), comme les thèmes de Cubari.
+  const THEMES = {
+    "#28292B": ["#1e2024", "#15171a", "#8f9aff", "#eceff4"], // Cubari → ScanR sombre
+    "#F1F4FF": ["#ffffff", "#f7f8fc", "#745cf7", "#222831"], // Light → ScanR clair
+  };
+  try {
+    const setTheme = ThemeManager.setTheme;
+    ThemeManager.setTheme = (sidebar, ...rest) => {
+      const theme = Settings.get("thm.theme") === "Custom" ? null : THEMES[sidebar];
+      setTheme(...(theme || [sidebar, ...rest]));
+      document.querySelectorAll('meta[name="theme-color"]').forEach((meta) => {
+        meta.content = theme ? theme[0] : sidebar;
+      });
+    };
+    ThemeManager.themeUpdated();
+  } catch {
+    // Lecteur Cubari modifié : on garde ses couleurs
+  }
 })();

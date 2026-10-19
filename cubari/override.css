@@ -3,3 +3,21 @@
   font-family: 'coobaree';
   display: inline-block;
 }
+
+/* Couleurs ScanR avant que override.js ne prenne la main (voir THEMES dans override.js) */
+:root {
+  --readerBg: #15171a;
+  --sidebarCol: #1e2024;
+  --accentCol: #8f9aff;
+  --icoCol: #eceff4;
+  --textCol: #eceff4;
+  --sidebarColDark: #0f1115;
+  --sidebarColDarkA: #0f111500;
+  --prevCol: #17191d;
+  --accentSelected: #111111;
+}
+
+/* Séparateurs du sélecteur de pages : gris fixe (#272b30) dans reader.css */
+.rdr-page-selector-keys div::before {
+  background: var(--readerBg);
+}
