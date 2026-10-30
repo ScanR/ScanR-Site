@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+
 .cubari-logo:before {
   content: "";
   font-family: 'coobaree';
@@ -15,6 +17,28 @@
   --sidebarColDarkA: #0f111500;
   --prevCol: #17191d;
   --accentSelected: #111111;
+}
+
+/* Police du site : reader.css réclame Open Sans (sans la charger) à chaque endroit listé ici.
+   Les icônes (guya, coobaree) gardent leur police. */
+body,
+button,
+input,
+select,
+textarea,
+.Loda_Jump input,
+.Loda_Jump .Button,
+.rdr-aside-overlay:before,
+.ResetButton,
+.pcr-app,
+.pcr-app .pcr-interaction .pcr-cancel,
+.pcr-app .pcr-interaction .pcr-clear,
+.pcr-app .pcr-interaction .pcr-save,
+.dropbtn {
+  font-family: "Urbanist", system-ui, sans-serif;
+}
+.ico-btn.downloading {
+  font-family: "Urbanist", system-ui, sans-serif !important;
 }
 
 /* Séparateurs du sélecteur de pages : gris fixe (#272b30) dans reader.css */
